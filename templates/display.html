@@ -142,9 +142,27 @@ $(document).ready(function($)
 
 		//use the "arr"	object for your ajax call
 		$.extend(arr, {row_id:row_id});
-    $.post(
-              "/change_val",
-              { arr: arr})
+
+    console.log('PRINTLOG',arr, row_id)
+
+    var data = {
+        "name": "test",
+        "age": 1
+    };
+    $.ajax({
+        type: 'GET',
+        url: '/change_val',
+        data: data,
+        dataType: 'json',
+        success: function(data) { $('.post_msg').html( '<pre class="bg-success">'+JSON.stringify(arr, null, 2) +'</pre>');
+        },
+        error: function(xhr, type) {console.log('PRINTLOGINSIDE',data)
+        }
+    });
+
+    //$.post( ; charset=UTF-8
+    //          "/display",
+    //          { arr: arr,col_name:col_name})
 		//out put to show
 		$('.post_msg').html( '<pre class="bg-success">'+JSON.stringify(arr, null, 2) +'</pre>');
 
@@ -169,7 +187,10 @@ $(document).ready(function($)
 
 });
 </script>
-all_used: {{all_used_cols}}
+arr: {{arr}}
+<p>in:{{inornot}}</p>
+<p>col1:{{col1}}</p>
+<p>col2:{{col2}}</p>
 <div id="scrolldiv1">{{ res_df|safe }}</div>
 
 <div class="panel panel-default">

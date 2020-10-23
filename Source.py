@@ -18,21 +18,60 @@ def home():
     files = os.listdir(csvfolderpath)
     return render_template('index.html', files=files, fileName='')
 
-@app.route('/display')
+@app.route('/display',methods=["GET","POST"])
 def display():
-    file_name = get_value_with_fallback("file_name")
-    col1= get_values_with_fallback("col1")
-    col2= get_values_with_fallback("col2")
-    cnt_col= get_values_with_fallback("cnt_col")
-    rate_col= get_values_with_fallback("rate_col")
+    #file_name = get_value_with_fallback("file_name")
+    file_name=get_value_with_fallback('file_name')
+    col1= post_values_with_fallback("col1")
+    col2= post_values_with_fallback("col2")
+    cnt_col= post_values_with_fallback("cnt_col")
+    rate_col= post_values_with_fallback("rate_col")
 
     all_used_cols = list(col1)+list(col2)+list(cnt_col)+list(rate_col)
     ajax_df,res_df,all_used_cols = get_ajax(file_name,col1,col2,cnt_col,rate_col)
     ajax_df = json.dumps(ajax_df)
     all_used_cols = json.dumps(all_used_cols)
     indx = json.dumps(col1[0])
+
+    # update values?
+    col_name='test'
+    inornot = 'noe'
+    arr='arrrrr'
+    #if request.method=='POST':
+        #inornot = 'yes'
+        #arr= request.get_json()
+    #arr= post_value_with_fallback("data")
+    #arr= get_json()
+    #arr = json.dumps(arr)
     return render_template('display.html', all_used_cols=all_used_cols,
-    ajax_df=ajax_df,res_df=res_df,file_name = file_name,indx=indx,cnt_col=cnt_col,rate_col=rate_col)
+    ajax_df=ajax_df,res_df=res_df,file_name = file_name,indx=indx,col_name=col_name,col1=col1,col2=col2,inornot =inornot,arr=arr)
+
+@app.route('/change_val',methods=["GET","POST"])
+def change_val():
+    '''
+    {
+  "country_nunique": "2237",
+  "row_id": "3D Printing"
+    }
+    '''
+    inornot = 'nonono'
+    arr='abc'
+    #arr= get_value_with_fallback('data')
+    if request.method=="POST":
+        inornot = 'post'
+        #arr= request.get_json()
+    #arr= request.get_json()
+    name = request.args.get('name', '')
+    age = int(request.args.get('age', '0'))
+    #arr= get_json()
+    #arr = json.dumps(arr)
+    return render_template('change_val.html',arr=(name,age),inornot=inornot)
+    #return redirect(url_for('/display',arr=arr))
+
+def get_json():
+    if request.get_json():
+        return request.get_json()
+    return DEFAULT_SELECT
 
 
 def get_ajax(file_name,col1,col2,cnt_col,rate_col):
@@ -95,15 +134,16 @@ def show(name):
     return render_template('index.html', files=files, fileName= name, data=table.to_html())
 
 
-@app.route('/selection')
+@app.route('/selection',methods=['GET','POST'])
 def selection():
 
     files = os.listdir(csvfolderpath)
     files = [file for file in files if not file.startswith(".")]
 
-    file_name = get_value_with_fallback("file_name")
-    used_cols= get_values_with_fallback("used_cols")
-    target_cols= get_values_with_fallback("target_cols")
+    #file_name = get_value_with_fallback("file_name")
+    file_name = get_value_with_fallback('file_name')
+    used_cols= post_values_with_fallback("used_cols")
+    target_cols= post_values_with_fallback("target_cols")
     relations,cols = rel_col(file_name,used_cols,target_cols)
 
     response = make_response(render_template("selection.html",
@@ -118,6 +158,20 @@ def selection():
     #response.set_cookie("target_cols", target_cols, expires=expires)
     return response
     #return render_template('selection.html', files= files)
+
+def post_value_with_fallback(key):
+    if request.form.get(key):
+        return request.form.get(key)
+    if request.cookies.get(key):
+        return request.cookies.get(key)
+    return DEFAULT_SELECT
+
+def post_values_with_fallback(key):
+    if request.form.getlist(key):
+        return request.form.getlist(key)
+    if request.cookies.getlist(key):
+        return request.cookies.getlist(key)
+    return DEFAULT_SELECT
 
 def get_value_with_fallback(key):
     if request.args.get(key):

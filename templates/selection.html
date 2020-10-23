@@ -4,7 +4,7 @@
 
 
 
-  <form>
+  <form method="GET">
       Table: <select name="file_name">
         {% for file in files %}
           <option value="{{file}}" {{'selected="selected"' if file_name==file}}>{{file}}</option>
@@ -12,7 +12,7 @@
         </select>
         <input type="submit" value="Submit">
   </form>
-  <form action ="/display">
+  <form action="{{ url_for('display') }}" method="post">
       Raw_Feature: <select multiple name="col1">
         {% for col in cols %}
           <option value="{{col}}" {{'selected="selected"' if col1==col}}>{{col}}</option>
