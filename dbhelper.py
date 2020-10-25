@@ -25,9 +25,9 @@ class DBHelper:
         return list(self.db.params.find().sort('_id',-1))[0]
 
     def add_table(self,file_name,df):
-        if file_name in self.db.list_collection_names():
-            print('has already')
-            return
+        #if file_name in self.db.list_collection_names():
+        #    print('has already')
+        #    return
         db_table = self.db[file_name]
         #db_table_res = self.db[file_name+"_res"]
         params = self.get_params()
@@ -69,7 +69,7 @@ class DBHelper:
         return df
     def get_table_one(self,file_name):
         return list(self.db[file_name].find_one())
-    def get_table(self,file_name):
+    def get_table(self,file_name,update=False):
         params = self.get_params()
         #'ft':ft,'gr_ft':gr_ft,'cnt_ft':cnt_ft,'avg_ft':avg_ft = params
         db_table = self.db[file_name]
@@ -80,12 +80,18 @@ class DBHelper:
         df_res = self.helper_agg(df.copy(),params['gr_ft'],params['cnt_ft'],params['avg_ft']+['cnt'],True)
 
         #get two tables
-        df_ori = self.helper_cal(df,params['cnt_ft'],params['avg_ft'])
         df_cal = self.helper_cal(df_res,params['cnt_ft'],params['avg_ft'])
+        res_used_cols = df_cal.columns.tolist()
 
+        if not update:
+            df_ori = self.helper_cal(df,params['cnt_ft'],params['avg_ft'])
+            all_used_cols = df_ori.columns.tolist()
+            return df_ori,df_cal,all_used_cols,res_used_cols
+
+        return df_cal,res_used_cols
         # get columns for table_out used in ajax data
-        all_used_cols = df_ori.columns.tolist()
-        return df_ori,df_cal,all_used_cols
+
+
 
     def drop_table(self,file_name):
         self.db[file_name].drop()

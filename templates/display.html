@@ -13,9 +13,15 @@ $(document).ready(function($)
   var jsonz = {{ ajax_df|tojson }};
   var ajax_data = JSON.parse(jsonz);
   var indx = {{indx|tojson}};
-  //var indx = JSON.parse(json_idx);
   var edit_col = {{edit_col|tojson}};
-  //var edit_col = JSON.parse(json_edit);
+  var jsoncol = {{ all_used_cols|tojson }};
+  var ajax_cols = JSON.parse(jsoncol);
+
+
+  var jsonz_res = {{ajax_df_res|tojson}};
+  var ajax_res_data = JSON.parse(jsonz_res);
+  var jsoncol_res = {{ res_used_cols|tojson }};
+  var ajax_res_cols = JSON.parse(jsoncol_res);
 
 //--->	[
 //--->		{fname:"Code", lname:"With Mark", email:"mark@codewithmark.com"},
@@ -36,14 +42,13 @@ $(document).ready(function($)
 
 	//--->create data table > start
 	var tbl = '';
+  //var tbl_res = '';
   var i;
-  var jsoncol = {{ all_used_cols|tojson }};
-  var ajax_cols = JSON.parse(jsoncol);
+
   //--->var allall_used_colsvar jsonz = {{ ajax_df|tojson }};
   //--->var ajax_data = JSON.parse(jsonz);
 
 	tbl +='<table class="table table-hover">'
-
 		//--->create table header > start
 		tbl +='<thead>';
 			tbl +='<tr>';
@@ -99,11 +104,51 @@ $(document).ready(function($)
 	tbl +='</table>'
 	//--->create data table > end
 
+
+  function create_res(ajax_res_cols,ajax_res_data){
+    var tbl_res=''
+  	tbl_res +='<table class="table_res table-hover">'
+  		//--->create table header > start
+  		tbl_res +='<thead>';
+  			tbl_res +='<tr>';
+        $.each( ajax_res_cols, function( index, value ){
+            tbl_res += '<th>'+value+'</th>';
+        });
+  			tbl_res +='</tr>';
+  		tbl_res +='</thead>';
+  		tbl_res +='<tbody>';
+
+  			//--->create table body rows > start
+  			$.each(ajax_res_data, function(index, val) //for each row of the data
+  			{
+  				//you can replace with your database row id
+  				var row_id = random_id();
+
+  				//loop through ajax row data
+  				tbl_res +='<tr row_id="'+val[indx]+'">';
+            $.each( ajax_res_cols, function( index, value ){  //for each col of the data
+              //console.log("PRINTNOTEDIT",value)
+              tbl_res +='<td ><div class="not_edit" col_name="'+value+'" contentEditable="false" readonly>'+val[value]+'</div></td>';
+              	//--->  tbl += '<th>'+value+'</th>';
+            });
+  				tbl_res+='</tr>';
+  			});
+
+  			//--->create table body rows > end
+  		tbl_res +='</tbody>';
+  		//--->create table body > end
+  	tbl_res +='</table>'
+    return tbl_res
+  }
+
+
+
+
+  var tbl_res = create_res(ajax_res_cols,ajax_res_data)
 	//out put table data
 	$(document).find('.tbl_user_data').html(tbl);
+  $(document).find('.tbl_res_data').html(tbl_res);
 
-	$(document).find('.btn_save').hide();
-	$(document).find('.btn_cancel').hide();
 
 
 	//--->make div editable > start
@@ -157,20 +202,23 @@ $(document).ready(function($)
         "name": "test",
         "age": 1
     };
-    $.ajax({
-        type: 'POST',
-        //url: 'http://127.0.0.1:5000/change_val',
-        //data: data,
-        url: 'http://127.0.0.1:3000/update',
-        contentType: 'application/json; charset=UTF-8',
-        data: JSON.stringify(arr),
-        success: function(data){
-            console.log('PRINTSUC',data);
-        },
-        error: function(err) {
-            console.log("lose");
-        }
-    });
+
+   $.ajax({
+   type: 'POST',
+   url: 'http://127.0.0.1:3000/update',
+   data: JSON.stringify(arr),
+   contentType: 'application/json; charset=UTF-8',
+   dataType: 'json',
+   success: function(data){
+     console.log(data)
+     var tbl_res = create_res(JSON.parse(data['ajax_res_cols']),JSON.parse(data['ajax_res_data']));
+                  $(document).find('.tbl_res_data').html(tbl_res);
+
+   },
+   error: function(err) {
+       console.log("lose");
+   }
+});
 
     //$.post( ; charset=UTF-8
     //          "/display",
@@ -199,22 +247,20 @@ $(document).ready(function($)
 
 });
 </script>
-arr: {{data}}
-<p>in:{{inornot}}</p>
-<p>col1:{{col1}}</p>
-<p>col2:{{col2}}</p>
-<div id="scrolldiv1">{{ res_df|safe }}</div>
+
+<!-- <div id="scrolldiv1">{{ res_df|safe }}</div> -->
 
 <div class="panel panel-default">
-  <div class="panel-heading"><b>HTML Table Edits/Upates</b> </div>
+  <div class="panel-heading"><b> Result </b> </div>
 
   <div class="panel-body">
 
-	<p>All the changes will be displayed below</p>
-	<div class="post_msg"> </div>
+	<div class="tbl_res_data"></div>
 
   </div>
 </div>
+
+
 <div class="panel panel-default">
   <div class="panel-heading"><b> Demo </b> </div>
 

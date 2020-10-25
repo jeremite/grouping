@@ -64,13 +64,15 @@ def selection():
 @app.route('/display')
 def display():
     file_name = DB.get_file_name()
-    data_ori,data_res,all_used_cols = DB.get_table(file_name)
+    data_ori,data_res,all_used_cols,res_used_cols = DB.get_table(file_name)
     ajax_df = json.dumps(data_ori.to_dict('records'))
-    res_df = data_res.to_html(index = False)
+    ajax_df_res = json.dumps(data_res.to_dict('records'))
+    #res_df = data_res.to_html(index = False)
     all_used_cols = json.dumps(all_used_cols)
+    res_used_cols = json.dumps(res_used_cols)
     params = DB.get_params()
-    return render_template('display.html', all_used_cols=all_used_cols,
-    ajax_df=ajax_df,res_df=res_df,file_name = file_name,indx=params['ft'],edit_col=params['gr_ft'])
+    return render_template('display.html', all_used_cols=all_used_cols,res_used_cols=res_used_cols,
+    ajax_df=ajax_df,ajax_df_res=ajax_df_res,file_name = file_name,indx=params['ft'],edit_col=params['gr_ft'])
 
 @app.route('/createtable', methods=["POST"])
 def createtable():
@@ -92,12 +94,20 @@ def createtable():
 
 @app.route('/update', methods=["POST"])
 def update():
-    file_name = DB.get_file_name()
-    data = request.get_json()
+    #file_name = DB.get_file_name()''
+    data = request.get_data()
     data = json.loads(data)
-    ft_val,gr_ft_val = data['row_id'],data['edit']
-    DB.update_table(file_name,ft_val,gr_ft_val)
-    return redirect(url_for('display'))
+    #return jsonify(dict(redirect='display'))
+
+    ajax_res_data,ajax_res_cols = do_update(data)
+    #ajax_res_data='a'
+    #ajax_res_cols='b'
+    #return ajax_res_data
+    return jsonify({'ajax_res_data': ajax_res_data,
+                    'ajax_res_cols': ajax_res_cols})
+    #                         request.form['source_language'],
+    #                              request.form['dest_language'])})
+    #return jsonify(dict(redirect='display'))
 
         #arr= request.get_json()
     #arr= request.get_json()
@@ -108,10 +118,15 @@ def update():
     #return render_template('change_val.html',arr=data,inornot=inornot)
     #return redirect(url_for('.display',arr=json.dumps(data)))
 
-def get_json():
-    if request.get_json():
-        return request.get_json()
-    return DEFAULT_SELECT
+def do_update(data):
+    file_name = DB.get_file_name()
+    #data = json.loads(data)
+    ft_val,gr_ft_val = data['row_id'],data['edit']
+    DB.update_table(file_name,ft_val,gr_ft_val)
+    data_res,res_used_cols = DB.get_table(file_name,update=True)
+    ajax_df_res = json.dumps(data_res.to_dict('records'))
+    res_used_cols = json.dumps(res_used_cols)
+    return ajax_df_res,res_used_cols
 
 def pd_read(file_name,sample=None,used_cols=None):
     csvFile = os.path.join(csvfolderpath, file_name)
