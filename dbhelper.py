@@ -31,12 +31,12 @@ class DBHelper:
         db_table = self.db[file_name]
         #db_table_res = self.db[file_name+"_res"]
         params = self.get_params()
-        print(params, flush=True)
-        print(df.columns, flush=True)
         # get the data with smaller size then save into DB to decrease further I/O time
         df = self.helper_agg(df,list([params['ft']]+[params['gr_ft']]),params['cnt_ft'],params['avg_ft'])
         #df_res = self.helper_agg(df,params['gr_ft'],params['cnt_ft']+['cnt'],params['avg_ft'],True)
-        print('get table')
+        #print('df before insert',df)
+        if file_name in self.db.list_collection_names():
+            self.drop_table(file_name)
         db_table.insert_many(df.to_dict('records'))
         #db_table_res.insert_many(df_res.to_dict('records'))
 
@@ -75,7 +75,7 @@ class DBHelper:
         db_table = self.db[file_name]
         df = pd.DataFrame(db_table.find())
         df.drop(columns='_id',inplace=True)
-
+        #print(df.head())
         # get resulats table
         df_res = self.helper_agg(df.copy(),params['gr_ft'],params['cnt_ft'],params['avg_ft']+['cnt'],True)
 
