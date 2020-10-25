@@ -4,7 +4,7 @@ import os
 import pyarrow as pa
 import pyarrow.parquet as pq
 import datetime
-from flask import make_response
+from flask import make_response,redirect,url_for,jsonify
 import json
 import numpy as np
 
@@ -20,36 +20,44 @@ def home():
 
 @app.route('/display',methods=["GET","POST"])
 def display():
+    global new_data
+    new_data = ""
+    if not new_data:
     #file_name = get_value_with_fallback("file_name")
-    file_name=get_value_with_fallback('file_name')
-    col1= post_values_with_fallback("col1")
-    col2= post_values_with_fallback("col2")
-    cnt_col= post_values_with_fallback("cnt_col")
-    rate_col= post_values_with_fallback("rate_col")
-
-    all_used_cols = list(col1)+list(col2)+list(cnt_col)+list(rate_col)
-    ajax_df,res_df,all_used_cols = get_ajax(file_name,col1,col2,cnt_col,rate_col)
-    ajax_df = json.dumps(ajax_df)
-    all_used_cols = json.dumps(all_used_cols)
-    indx = json.dumps(col1[0])
-
-    # update values?
-    col_name='test'
-    inornot = 'noe'
-    arr='arrrrr'
-    #if request.method=='POST':
-        #inornot = 'yes'
-        #arr= request.get_json()
-    #arr= post_value_with_fallback("data")
-    #arr= get_json()
-    #arr = json.dumps(arr)
+        file_name=get_value_with_fallback('file_name')
+        col1= post_values_with_fallback("col1")
+        col2= post_values_with_fallback("col2")
+        cnt_col= post_values_with_fallback("cnt_col")
+        rate_col= post_values_with_fallback("rate_col")
+        print('col1',col1)
+        print('col2',col2)
+        if isinstance(col1,str):
+            col1 = list(col1)
+        if isinstance(col2,str):
+            col2 = list(col2)
+        all_used_cols = col1+col2+list(cnt_col)+list(rate_col)
+        ajax_df,res_df,all_used_cols,res_old = get_ajax(file_name,col1,col2,cnt_col,rate_col)
+        ajax_df = json.dumps(ajax_df)
+        all_used_cols = json.dumps(all_used_cols)
+        indx = json.dumps(col1[0])
+    else:
+        new_data = json.loads(new_data)
+        [col_change,val_change],(col_idx,val1) = new_data.values()
+        res_old.loc[res_old[col_idx]==val1,col_change]=val_change
+        res_old = helper_agg(res_old,col2,cnt_col,rate_col)
+        res_df =  helper_rename(res_out,col2)
+        #res_df.loc[res_df['main_category']=='Dance','country_nunique']
     return render_template('display.html', all_used_cols=all_used_cols,
-    ajax_df=ajax_df,res_df=res_df,file_name = file_name,indx=indx,col_name=col_name,col1=col1,col2=col2,inornot =inornot,arr=arr)
+    ajax_df=ajax_df,res_df=res_df,file_name = file_name,indx=indx,col1=col1,col2=col2)
 
-@app.route('/change_val',methods=["GET","POST"])
+@app.route('/change_val',methods=["POST"])
 def change_val():
     '''
     {
+    {
+  "state_nunique": "6",
+  "row_id": "3D Printing"
+}
   "country_nunique": "2237",
   "row_id": "3D Printing"
     }
@@ -57,16 +65,20 @@ def change_val():
     inornot = 'nonono'
     arr='abc'
     #arr= get_value_with_fallback('data')
-    if request.method=="POST":
-        inornot = 'post'
+    data = request.get_json()
+    print('received: %s'%data)
+    if data:
+        return "success",200
+    else:
+        return "error", 400
         #arr= request.get_json()
     #arr= request.get_json()
-    name = request.args.get('name', '')
-    age = int(request.args.get('age', '0'))
+    #name = request.args.get('name', '')
+    #age = int(request.args.get('age', '0'))
     #arr= get_json()
     #arr = json.dumps(arr)
-    return render_template('change_val.html',arr=(name,age),inornot=inornot)
-    #return redirect(url_for('/display',arr=arr))
+    #return render_template('change_val.html',arr=data,inornot=inornot)
+    #return redirect(url_for('.display',arr=json.dumps(data)))
 
 def get_json():
     if request.get_json():
@@ -74,7 +86,7 @@ def get_json():
     return DEFAULT_SELECT
 
 
-def get_ajax(file_name,col1,col2,cnt_col,rate_col):
+def get_ajax(file_name,col1,col2,cnt_col,rate_col,new_data=None):
     cols = list(col1)+list(col2)+list(cnt_col)+list(rate_col)
     table = pd_read(file_name,used_cols=cols)
     # do the calculation
@@ -83,6 +95,7 @@ def get_ajax(file_name,col1,col2,cnt_col,rate_col):
     res_out = table_out.copy()
     res_out.columns = res_out.columns.droplevel(1)
     res_out.reset_index(inplace=True)
+    res_old = res_out.copy()
     res_out = helper_agg(res_out,col2,cnt_col,rate_col)
     # get two tables
     table_out = helper_rename(table_out,col1)
@@ -90,7 +103,7 @@ def get_ajax(file_name,col1,col2,cnt_col,rate_col):
 
     # get columns for table_out used in ajax data
     all_used_cols = table_out.columns.tolist()
-    return table_out.to_dict('records'),res_out.to_html(index = False),all_used_cols
+    return table_out.to_dict('records'),res_out.to_html(index = False),all_used_cols,res_old
 
 def helper_agg(df,g_col,cnt_col,rate_col,round_n=2):
     cal_cnt = {cnt:[pd.Series.nunique] for cnt in cnt_col}

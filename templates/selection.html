@@ -12,7 +12,7 @@
         </select>
         <input type="submit" value="Submit">
   </form>
-  <form action="{{ url_for('display') }}" method="post">
+  <form action="{{ url_for('createtable') }}" method="post">
       Raw_Feature: <select multiple name="col1">
         {% for col in cols %}
           <option value="{{col}}" {{'selected="selected"' if col1==col}}>{{col}}</option>

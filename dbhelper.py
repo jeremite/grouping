@@ -1,5 +1,8 @@
 import pymongo
 from bson.objectid import ObjectId
+import numpy as np
+import pandas as pd
+import sys
 DATABASE = "grouping"
 
 class DBHelper:
@@ -7,6 +10,13 @@ class DBHelper:
     def __init__(self):
         client = pymongo.MongoClient()
         self.db = client[DATABASE]
+
+    def add_file_name(self,file_name):
+        return self.db.files.insert_one({'file':file_name})
+
+    def get_file_name(self):
+        return list(self.db.files.find().sort('_id',-1))[0]['file']
+
 
     def add_params(self,ft,gr_ft,cnt_ft,avg_ft):
         return self.db.params.insert_one({'ft':ft,'gr_ft':gr_ft,'cnt_ft':cnt_ft,'avg_ft':avg_ft})
@@ -21,7 +31,8 @@ class DBHelper:
         db_table = self.db[file_name]
         #db_table_res = self.db[file_name+"_res"]
         params = self.get_params()
-
+        print(params, flush=True)
+        print(df.columns, flush=True)
         # get the data with smaller size then save into DB to decrease further I/O time
         df = self.helper_agg(df,list([params['ft']]+[params['gr_ft']]),params['cnt_ft'],params['avg_ft'])
         #df_res = self.helper_agg(df,params['gr_ft'],params['cnt_ft']+['cnt'],params['avg_ft'],True)

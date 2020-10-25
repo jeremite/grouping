@@ -12,8 +12,10 @@ $(document).ready(function($)
 
   var jsonz = {{ ajax_df|tojson }};
   var ajax_data = JSON.parse(jsonz);
-  var json_idx = {{indx|tojson}};
-  var indx = JSON.parse(json_idx);
+  var indx = {{indx|tojson}};
+  //var indx = JSON.parse(json_idx);
+  var edit_col = {{edit_col|tojson}};
+  //var edit_col = JSON.parse(json_edit);
 
 //--->	[
 //--->		{fname:"Code", lname:"With Mark", email:"mark@codewithmark.com"},
@@ -69,7 +71,13 @@ $(document).ready(function($)
 				//loop through ajax row data
 				tbl +='<tr row_id="'+val[indx]+'">';
           $.each( ajax_cols, function( index, value ){  //for each col of the data
+            if (value==edit_col){
+            //console.log("PRINTEDIT",value)
             tbl +='<td ><div class="row_data" edit_type="click" col_name="'+value+'">'+val[value]+'</div></td>';
+          } else {
+            //console.log("PRINTNOTEDIT",value)
+            tbl +='<td ><div class="not_edit" col_name="'+value+'" contentEditable="false" readonly>'+val[value]+'</div></td>';
+          }
             	//--->  tbl += '<th>'+value+'</th>';
           });
 						//--->tbl +='<td ><div class="row_data" edit_type="click" col_name="fname">'+val['ID']+'</div></td>';
@@ -138,7 +146,7 @@ $(document).ready(function($)
 		var col_val = row_div.html();
 
 		var arr = {};
-		arr[col_name] = col_val;
+		arr["edit"] = col_val;
 
 		//use the "arr"	object for your ajax call
 		$.extend(arr, {row_id:row_id});
@@ -150,13 +158,17 @@ $(document).ready(function($)
         "age": 1
     };
     $.ajax({
-        type: 'GET',
-        url: '/change_val',
-        data: data,
-        dataType: 'json',
-        success: function(data) { $('.post_msg').html( '<pre class="bg-success">'+JSON.stringify(arr, null, 2) +'</pre>');
+        type: 'POST',
+        //url: 'http://127.0.0.1:5000/change_val',
+        //data: data,
+        url: 'http://127.0.0.1:3000/update',
+        contentType: 'application/json; charset=UTF-8',
+        data: JSON.stringify(arr),
+        success: function(data){
+            console.log('PRINTSUC',data);
         },
-        error: function(xhr, type) {console.log('PRINTLOGINSIDE',data)
+        error: function(err) {
+            console.log("lose");
         }
     });
 
@@ -187,7 +199,7 @@ $(document).ready(function($)
 
 });
 </script>
-arr: {{arr}}
+arr: {{data}}
 <p>in:{{inornot}}</p>
 <p>col1:{{col1}}</p>
 <p>col2:{{col2}}</p>
