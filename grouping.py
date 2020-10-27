@@ -22,6 +22,7 @@ csvfolderpath = os.path.join(APP_ROOT, 'OutputFolder')
 @app.route('/')
 def home():
     files = os.listdir(csvfolderpath)
+    files = [file for file in files if not file.startswith(".")]
     return render_template('index.html', files=files, fileName='')
 
 @app.route('/<string:name>')
@@ -100,23 +101,15 @@ def update():
     #return jsonify(dict(redirect='display'))
 
     ajax_res_data,ajax_res_cols = do_update(data)
-    #ajax_res_data='a'
-    #ajax_res_cols='b'
-    #return ajax_res_data
     return jsonify({'ajax_res_data': ajax_res_data,
                     'ajax_res_cols': ajax_res_cols})
-    #                         request.form['source_language'],
-    #                              request.form['dest_language'])})
-    #return jsonify(dict(redirect='display'))
 
-        #arr= request.get_json()
-    #arr= request.get_json()
-    #name = request.args.get('name', '')
-    #age = int(request.args.get('age', '0'))
-    #arr= get_json()
-    #arr = json.dumps(arr)
-    #return render_template('change_val.html',arr=data,inornot=inornot)
-    #return redirect(url_for('.display',arr=json.dumps(data)))
+@app.route('/reset', methods=["POST"])
+def reset():
+    file_name = DB.get_file_name()
+    data_ori,data_res,all_used_cols,res_used_cols = DB.get_defalt(file_name)
+    return "reset"
+
 
 def do_update(data):
     file_name = DB.get_file_name()

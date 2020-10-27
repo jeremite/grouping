@@ -38,6 +38,15 @@ class DBHelper:
         if file_name in self.db.list_collection_names():
             self.drop_table(file_name)
         db_table.insert_many(df.to_dict('records'))
+
+        # do a backup in order to reset
+        if not file_name+'_record_ori' in self.db.list_collection_names():
+            db_ori = self.db[file_name+'_record_ori']
+            #db_cal = self.db[file_name+'_record_cal']
+            #db_col = self.db[file_name+'_cols']
+            db_ori.insert_many(df.coyp().to_dict('records'))
+            #db_cal.insert_many(df_cal.to_dict('records'))
+            #db_col.insert_one({'all_used_cols':all_used_cols,'res_used_cols':res_used_cols})
         #db_table_res.insert_many(df_res.to_dict('records'))
 
     def update_table(self,file_name,ft_val,gr_ft_val):
@@ -92,6 +101,16 @@ class DBHelper:
         # get columns for table_out used in ajax data
 
 
+    def get_defalt(self,file_name):
+        # drop current updated collection
+        self.drop_table(file_name)
+        # get the presaved default table
+        db_ori = self.db[file_name+'_record_ori']
+        df_ori = pd.DataFrame(db_ori.find())
+        # write into the file_name collection
+        db_table = self.db[file_name]
+        db_table.insert_many(df_ori.to_dict('records'))
+        
 
     def drop_table(self,file_name):
         self.db[file_name].drop()

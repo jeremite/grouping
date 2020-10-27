@@ -2,6 +2,7 @@
 {% extends "layout.html" %}
 {% block body %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
 
 
 
@@ -40,115 +41,87 @@ $(document).ready(function($)
 	}
 
 
-	//--->create data table > start
-	var tbl = '';
-  //var tbl_res = '';
-  var i;
 
-  //--->var allall_used_colsvar jsonz = {{ ajax_df|tojson }};
-  //--->var ajax_data = JSON.parse(jsonz);
+  function create_res(cols,data,edit_col){
+    //--->create data table > start
+  	var tbl = '';
+    //var tbl_res = '';
+    //--->var allall_used_colsvar jsonz = {{ ajax_df|tojson }};
+    //--->var ajax_data = JSON.parse(jsonz);
 
-	tbl +='<table class="table table-hover">'
-		//--->create table header > start
-		tbl +='<thead>';
-			tbl +='<tr>';
-      $.each( ajax_cols, function( index, value ){
-          tbl += '<th>'+value+'</th>';
-      });
-			//--->tbl +='<th>First Name</th>';
-			//--->tbl +='<th>Last Name</th>';
-			//--->tbl +='<th>Email</th>';
-			//--->tbl +='<th>Options</th>';
-			tbl +='</tr>';
-		tbl +='</thead>';
-		//--->create table header > end
-
-
-		//--->create table body > start
-		tbl +='<tbody>';
-
-			//--->create table body rows > start
-			$.each(ajax_data, function(index, val) //for each row of the data
-			{
-				//you can replace with your database row id
-				var row_id = random_id();
-
-				//loop through ajax row data
-				tbl +='<tr row_id="'+val[indx]+'">';
-          $.each( ajax_cols, function( index, value ){  //for each col of the data
-            if (value==edit_col){
-            //console.log("PRINTEDIT",value)
-            tbl +='<td ><div class="row_data" edit_type="click" col_name="'+value+'">'+val[value]+'</div></td>';
-          } else {
-            //console.log("PRINTNOTEDIT",value)
-            tbl +='<td ><div class="not_edit" col_name="'+value+'" contentEditable="false" readonly>'+val[value]+'</div></td>';
-          }
-            	//--->  tbl += '<th>'+value+'</th>';
-          });
-						//--->tbl +='<td ><div class="row_data" edit_type="click" col_name="fname">'+val['ID']+'</div></td>';
-						//--->tbl +='<td ><div class="row_data" edit_type="click" col_name="lname">'+val['category']+'</div></td>';
-						//--->tbl +='<td ><div class="row_data" edit_type="click" col_name="email">'+val['year']+'</div></td>';
-
-					//--->edit options > start
-
-					//--->edit options > end
-
-				tbl +='</tr>';
-			});
-
-			//--->create table body rows > end
-
-		tbl +='</tbody>';
-		//--->create table body > end
-
-	tbl +='</table>'
-	//--->create data table > end
-
-
-  function create_res(ajax_res_cols,ajax_res_data){
-    var tbl_res=''
-  	tbl_res +='<table class="table_res table-hover">'
+  	tbl +='<table class="table table-hover sortable">'
   		//--->create table header > start
-  		tbl_res +='<thead>';
-  			tbl_res +='<tr>';
-        $.each( ajax_res_cols, function( index, value ){
-            tbl_res += '<th>'+value+'</th>';
+  		tbl +='<thead>';
+  			tbl +='<tr>';
+        $.each( cols, function( index, value ){
+            tbl += '<th>'+value+'</th>';
         });
-  			tbl_res +='</tr>';
-  		tbl_res +='</thead>';
-  		tbl_res +='<tbody>';
+  			//--->tbl +='<th>First Name</th>';
+  			//--->tbl +='<th>Last Name</th>';
+  			//--->tbl +='<th>Email</th>';
+  			//--->tbl +='<th>Options</th>';
+  			tbl +='</tr>';
+  		tbl +='</thead>';
+  		//--->create table header > end
+
+
+  		//--->create table body > start
+  		tbl +='<tbody>';
 
   			//--->create table body rows > start
-  			$.each(ajax_res_data, function(index, val) //for each row of the data
+  			$.each(data, function(index, val) //for each row of the data
   			{
   				//you can replace with your database row id
-  				var row_id = random_id();
+  				//var row_id = random_id();
 
   				//loop through ajax row data
-  				tbl_res +='<tr row_id="'+val[indx]+'">';
-            $.each( ajax_res_cols, function( index, value ){  //for each col of the data
+  				tbl +='<tr row_id="'+val[indx]+'">';
+            $.each( cols, function( index, value ){  //for each col of the data
+              if (value==edit_col){
+              //console.log("PRINTEDIT",value)
+              tbl +='<td ><div class="row_data" edit_type="click" col_name="'+value+'">'+val[value]+'</div></td>';
+            } else {
               //console.log("PRINTNOTEDIT",value)
-              tbl_res +='<td ><div class="not_edit" col_name="'+value+'" contentEditable="false" readonly>'+val[value]+'</div></td>';
+              tbl +='<td ><div class="not_edit" col_name="'+value+'" contentEditable="false" readonly>'+val[value]+'</div></td>';
+            }
               	//--->  tbl += '<th>'+value+'</th>';
             });
-  				tbl_res+='</tr>';
+  						//--->tbl +='<td ><div class="row_data" edit_type="click" col_name="fname">'+val['ID']+'</div></td>';
+  						//--->tbl +='<td ><div class="row_data" edit_type="click" col_name="lname">'+val['category']+'</div></td>';
+  						//--->tbl +='<td ><div class="row_data" edit_type="click" col_name="email">'+val['year']+'</div></td>';
+
+  					//--->edit options > start
+
+  					//--->edit options > end
+
+  				tbl +='</tr>';
   			});
 
   			//--->create table body rows > end
-  		tbl_res +='</tbody>';
+
+  		tbl +='</tbody>';
   		//--->create table body > end
-  	tbl_res +='</table>'
-    return tbl_res
+
+  	tbl +='</table>'
+  	//--->create data table > end
+
+
+
+    return tbl
   }
 
 
 
+  var tbl = create_res(ajax_cols,ajax_data,edit_col)
+  var tbl_res = create_res(ajax_res_cols,ajax_res_data,'not')
 
-  var tbl_res = create_res(ajax_res_cols,ajax_res_data)
 	//out put table data
 	$(document).find('.tbl_user_data').html(tbl);
   $(document).find('.tbl_res_data').html(tbl_res);
 
+  //deep copy the original vars
+  var copied_user = JSON.parse(JSON.stringify(tbl));
+  var copied_res = JSON.parse(JSON.stringify(tbl_res));
 
 
 	//--->make div editable > start
@@ -181,7 +154,7 @@ $(document).ready(function($)
 			return false;
 		}
 
-		var row_id = $(this).closest('tr').attr('row_id');
+		var row_id = $(this).closest('tr').attr('row_id'); //row_id is set to indx
 
 		var row_div = $(this)
 		.removeClass('bg-warning') //add bg css
@@ -198,19 +171,15 @@ $(document).ready(function($)
 
     console.log('PRINTLOG',arr, row_id)
 
-    var data = {
-        "name": "test",
-        "age": 1
-    };
-
    $.ajax({
    type: 'POST',
-   url: 'http://127.0.0.1:3000/update',
+   url: '/update',
    data: JSON.stringify(arr),
    contentType: 'application/json; charset=UTF-8',
    dataType: 'json',
    success: function(data){
      console.log(data)
+
      var tbl_res = create_res(JSON.parse(data['ajax_res_cols']),JSON.parse(data['ajax_res_data']));
                   $(document).find('.tbl_res_data').html(tbl_res);
 
@@ -229,50 +198,59 @@ $(document).ready(function($)
 	})
 	//--->save single field data > end
 
-
-	//--->button > edit > start
-
-	//--->button > edit > end
-
-
-	//--->button > cancel > start
-
-	//--->button > cancel > end
-
-
-	//--->save whole row entery > start
-
-	//--->save whole row entery > end
-
+  //$(function(){
+  $('#resetBtn').click(function(){
+    var ori_tbl = JSON.parse(JSON.stringify(copied_user))
+    var ori_res = JSON.parse(JSON.stringify(copied_res))
+    $(document).find('.tbl_user_data').html(ori_tbl);
+    $(document).find('.tbl_res_data').html(ori_res);
+    $.getJSON('/update',
+                    function(data) {
+                  //do nothing
+                });
+                return false;
+  });
+  //});
 
 });
 </script>
+<style>
+  #scrolldiv2.tbl_res_data {
+  height: 300px;
+  width: 100%;
+  overflow: scroll;
+  border: 1px solid #666;
 
+  padding: 8px;
+  }
+</style>
 <!-- <div id="scrolldiv1">{{ res_df|safe }}</div> -->
 
-<div class="panel panel-default">
-  <div class="panel-heading"><b> Result </b> </div>
+<div class="panel panel-default up">
+  <div class="panel-heading"><b> Grouping Result </b> </div>
 
   <div class="panel-body">
 
-	<div class="tbl_res_data"></div>
+	<div class="tbl_res_data" id="scrolldiv2"></div>
 
   </div>
 </div>
 
 
-<div class="panel panel-default">
-  <div class="panel-heading"><b> Demo </b> </div>
+<div class="panel panel-default down">
+  <div class="panel-heading"><b> Raw Feature </b> </div>
 
   <div class="panel-body">
 
-	<div class="tbl_user_data"></div>
+	<div class="tbl_user_data" id="scrolldiv1"></div>
 
   </div>
 
 </div>
 
-
+<div class="panel btn">
+  <input type="button" value=" RESET " id="resetBtn">
+</div>
 
 
 {% endblock %}
