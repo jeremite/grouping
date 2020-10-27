@@ -22,18 +22,24 @@ csvfolderpath = os.path.join(APP_ROOT, 'OutputFolder')
 @app.route('/')
 def home():
     files = os.listdir(csvfolderpath)
-    files = [file for file in files if not file.startswith(".")]
+    files = [file for file in files if file.endswith(".csv") or file.endswith(".parquet")]
+    df = pd_read(files[-1],sample=20)
     return render_template('index.html', files=files, fileName='')
 
-@app.route('/<string:name>')
+@app.route('/<name>')
 def show(name):
-    csvFile = os.path.join(csvfolderpath, name)
+    #csvFile = os.path.join(csvfolderpath, name)
     files = os.listdir(csvfolderpath)
+    #table = None
+    '''
     if '.csv' in csvFile:
         table = pd.read_csv(csvFile, nrows=20)
     if '.parquet' in csvFile:
         table = pd.read_parquet(csvFile,  engine='pyarrow')
         table = table.head(20)
+    '''
+    table=pd_read(name,sample=20)
+
     return render_template('index.html', files=files, fileName= name, data=table.to_html())
 
 @app.route('/selection',methods=['GET','POST'])
@@ -123,6 +129,7 @@ def do_update(data):
 
 def pd_read(file_name,sample=None,used_cols=None):
     csvFile = os.path.join(csvfolderpath, file_name)
+    table=None
     if '.csv' in csvFile:
         table = pd.read_csv(csvFile, nrows=sample,usecols=used_cols)
     if '.parquet' in csvFile:
