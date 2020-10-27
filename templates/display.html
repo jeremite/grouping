@@ -1,8 +1,10 @@
 
 {% extends "layout.html" %}
 {% block body %}
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-<script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
+<!--<script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>-->
+<script src="static/js/sorttable.js" type="text/javascript"></script>
 
 
 
@@ -49,7 +51,7 @@ $(document).ready(function($)
     //--->var allall_used_colsvar jsonz = {{ ajax_df|tojson }};
     //--->var ajax_data = JSON.parse(jsonz);
 
-  	tbl +='<table class="table table-hover sortable">'
+  	tbl +='<table id="dtBasicExample" class="table table-hover sortable">'
   		//--->create table header > start
   		tbl +='<thead>';
   			tbl +='<tr>';
@@ -111,9 +113,9 @@ $(document).ready(function($)
   }
 
 
-
   var tbl = create_res(ajax_cols,ajax_data,edit_col)
   var tbl_res = create_res(ajax_res_cols,ajax_res_data,'not')
+
 
 	//out put table data
 	$(document).find('.tbl_user_data').html(tbl);
@@ -211,6 +213,7 @@ $(document).ready(function($)
                 return false;
   });
   //});
+
 
 });
 </script>
