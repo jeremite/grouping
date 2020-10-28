@@ -4,7 +4,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <!--<script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>-->
-<!--<script src="static/js/sorttable.js" type="text/javascript"></script>-->
+<script src="static/js/sorttable.js" type="text/javascript"></script>
 
 
 
@@ -34,24 +34,15 @@ $(document).ready(function($)
 //--->	]
 
 
-	var random_id = function  ()
-	{
-		var id_num = Math.random().toString(9).substr(2,3);
-		var id_str = Math.random().toString(36).substr(2);
 
-		return id_num + id_str;
-	}
-
-
-
-  function create_res(cols,data,edit_col){
+  function create_res(cols,data,edit_col,id){
     //--->create data table > start
   	var tbl = '';
     //var tbl_res = '';
     //--->var allall_used_colsvar jsonz = {{ ajax_df|tojson }};
     //--->var ajax_data = JSON.parse(jsonz);
 
-  	tbl +='<table id="dtBasicExample" class="table table-hover sortable">'
+  	tbl +='<table id="'+id+'" class="table table-hover sortable">'
   		//--->create table header > start
   		tbl +='<thead>';
   			tbl +='<tr>';
@@ -113,17 +104,20 @@ $(document).ready(function($)
   }
 
 
-  var tbl = create_res(ajax_cols,ajax_data,edit_col)
-  var tbl_res = create_res(ajax_res_cols,ajax_res_data,'not')
-
+  var tbl_user = create_res(ajax_cols,ajax_data,edit_col,'tb1')
+  var tbl_res = create_res(ajax_res_cols,ajax_res_data,'not','tb2')
   //deep copy the original vars
-  var copied_user = JSON.parse(JSON.stringify(tbl));
-  var copied_res = JSON.parse(JSON.stringify(tbl_res));
+  //var copied_user = JSON.parse(JSON.stringify(tbl));
+  //var copied_res = JSON.parse(JSON.stringify(tbl_res));
 
 
 	//out put table data
-	$(document).find('.tbl_user_data').html(tbl);
+	$(document).find('.tbl_user_data').html(tbl_user);
   $(document).find('.tbl_res_data').html(tbl_res);
+  var newTableObject_user_1 = document.getElementById('tb1')
+  sorttable.makeSortable(newTableObject_user_1)
+  var newTableObject_res_1 = document.getElementById('tb2')
+  sorttable.makeSortable(newTableObject_res_1)
 
 
 	//--->make div editable > start
@@ -144,7 +138,6 @@ $(document).ready(function($)
 		$(this).focus();
 	})
 	//--->make div editable > end
-
 
 	//--->save single field data > start
 	$(document).on('focusout', '.row_data', function(event)
@@ -182,36 +175,32 @@ $(document).ready(function($)
    success: function(data){
      console.log(data)
 
-     var tbl_res = create_res(JSON.parse(data['ajax_res_cols']),JSON.parse(data['ajax_res_data']));
-                  $(document).find('.tbl_res_data').html(tbl_res);
-
+     var tbl_res_new = create_res(JSON.parse(data['ajax_res_cols']),JSON.parse(data['ajax_res_data']),'not','tb_new');
+    $(document).find('.tbl_res_data').html(tbl_res_new);
+    var newTableObject_res_2 = document.getElementById('tb_new')
+    sorttable.makeSortable(newTableObject_res_2)
+    console.log("PRINTNEW",tbl_res_new)
+    //$( ".sortable" ).sortable( "refresh" );
    },
    error: function(err) {
        console.log("lose");
    }
 });
 
-    //$.post( ; charset=UTF-8
-    //          "/display",
-    //          { arr: arr,col_name:col_name})
-		//out put to show
-		$('.post_msg').html( '<pre class="bg-success">'+JSON.stringify(arr, null, 2) +'</pre>');
-
 	})
 	//--->save single field data > end
 
-  //$(function(){
   $('#resetBtn').click(function(){
-    var ori_tbl = JSON.parse(JSON.stringify(copied_user))
-    var ori_res = JSON.parse(JSON.stringify(copied_res))
-    $(document).find('.tbl_user_data').html(ori_tbl);
-    $(document).find('.tbl_res_data').html(ori_res);
-    $.getJSON('/update',
-                    function(data) {
-                  //do nothing
-                });
-                return false;
-  });
+    $(document).find('.tbl_user_data').html(tbl_user);
+    $(document).find('.tbl_res_data').html(tbl_res);
+    var newTableObject_user_1 = document.getElementById('tb1')
+    sorttable.makeSortable(newTableObject_user_1)
+    var newTableObject_res_1 = document.getElementById('tb2')
+    sorttable.makeSortable(newTableObject_res_1)
+    console.log("PRINTREST",tbl_res)
+})
+
+
   //});
 
 
@@ -229,7 +218,10 @@ $(document).ready(function($)
   .btn{display: inline-block; margin-right: 10px;}
 
 </style>
-<!-- <div id="scrolldiv1">{{ res_df|safe }}</div> -->
+
+<script src="static/js/sorttable.js" type="text/javascript"></script>
+
+
 
 <div class="panel panel-default up">
   <div class="panel-heading"><b> Grouping Result </b> </div>
@@ -254,8 +246,13 @@ $(document).ready(function($)
 </div>
 
 <div class="panel btn">
-  <input type="button" value=" RESET " id="resetBtn" style="margin-right:25px;"">
-  <input type="button" value=" CODE " id="exportBtn">
+  <input type="button" value=" RESET " id="resetBtn" style="margin-right:25px;">
+  <form action="{{ url_for('python_code') }}" method="post">
+  <input type="submit" value=" .PYTHON " id="export_python" formtarget=”_blank”>
+  </form>
+  <form action="{{ url_for('pyspark_code') }}" method="post" target="_blank">
+  <input type="submit" value=" .PYSPARK " id="export_pyspark" formtarget=”_blank”>
+  </form>
 </div>
 
 

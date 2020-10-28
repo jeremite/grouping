@@ -24,6 +24,12 @@ class DBHelper:
     def get_params(self):
         return list(self.db.params.find().sort('_id',-1))[0]
 
+    def add_updates(self,id_val,gr_val):
+        return self.db.updates.insert_one({'id_val':id_val,'gr_val':gr_val})
+
+    def get_updates(self):
+        return list(self.db.updates.find())
+
     def add_table(self,file_name,df):
         #if file_name in self.db.list_collection_names():
         #    print('has already')

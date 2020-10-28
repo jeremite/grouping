@@ -102,6 +102,7 @@ def createtable():
     #make col1 and col2 string
     df[[col1,col2]]=df[[col1,col2]].astype(str)
     DB.drop_table('params')
+    DB.drop_table('updates')
     DB.add_params(col1,col2,cnt_col,rate_col)
     DB.add_table(file_name,df)
     #expires = datetime.datetime.now() + datetime.timedelta(days=365)
@@ -128,12 +129,52 @@ def reset():
     DB.get_defalt(file_name)
     return "reset"
 
+@app.route('/python_code', methods=["POST"])
+def python_code():
+    updates = DB.get_updates()
+    col1,col2 = DB.get_params()['ft'],DB.get_params()['gr_ft']
+    final = {}
+    for u in updates:
+        if u['id_val'].isdigit():
+            id_val = int(u['id_val'])
+        else:
+            id_val = u['id_val']
+        if u['gr_val'].isdigit():
+            gr_val = int(u['gr_val'])
+        else:
+            gr_val = u['gr_val']
+        final[id_val]=gr_val
+    codes = "df[raw]=df[grouping].map('+final+')"
+    if not final:
+        final = "no updates"
+    return render_template("python_code.html",final = final, col1=json.dumps(col1),col2=json.dumps(col2))
+
+@app.route('/pyspark_code', methods=["POST"])
+def pyspark_code():
+    updates = DB.get_updates()
+    col1,col2 = DB.get_params()['ft'],DB.get_params()['gr_ft']
+    final = {}
+    for u in updates:
+        if u['id_val'].isdigit():
+            id_val = int(u['id_val'])
+        else:
+            id_val = u['id_val']
+        if u['gr_val'].isdigit():
+            gr_val = int(u['gr_val'])
+        else:
+            gr_val = u['gr_val']
+        final[id_val]=gr_val
+    codes = "df[raw]=df[grouping].map('+final+')"
+    if not final:
+        final = "no updates"
+    return render_template("pyspark_code.html",final = final, col1=json.dumps(col1),col2=json.dumps(col2))
 
 def do_update(data):
     file_name = DB.get_file_name()
     #data = json.loads(data)
     ft_val,gr_ft_val = data['row_id'],data['edit']
-    DB.update_table(file_name,ft_val,gr_ft_val)
+    DB.add_updates(ft_val,gr_ft_val) #record the updates for future use when transfer back to python/pyspark code
+    DB.update_table(file_name,ft_val,gr_ft_val) #update the database table
     data_res,res_used_cols = DB.get_table(file_name,update=True)
     ajax_df_res = json.dumps(data_res.to_dict('records'))
     res_used_cols = json.dumps(res_used_cols)
