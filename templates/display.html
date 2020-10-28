@@ -4,7 +4,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <!--<script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>-->
-<script src="static/js/sorttable.js" type="text/javascript"></script>
+<!--<script src="static/js/sorttable.js" type="text/javascript"></script>-->
 
 
 
@@ -116,14 +116,14 @@ $(document).ready(function($)
   var tbl = create_res(ajax_cols,ajax_data,edit_col)
   var tbl_res = create_res(ajax_res_cols,ajax_res_data,'not')
 
+  //deep copy the original vars
+  var copied_user = JSON.parse(JSON.stringify(tbl));
+  var copied_res = JSON.parse(JSON.stringify(tbl_res));
+
 
 	//out put table data
 	$(document).find('.tbl_user_data').html(tbl);
   $(document).find('.tbl_res_data').html(tbl_res);
-
-  //deep copy the original vars
-  var copied_user = JSON.parse(JSON.stringify(tbl));
-  var copied_res = JSON.parse(JSON.stringify(tbl_res));
 
 
 	//--->make div editable > start
@@ -226,6 +226,8 @@ $(document).ready(function($)
 
   padding: 8px;
   }
+  .btn{display: inline-block; margin-right: 10px;}
+
 </style>
 <!-- <div id="scrolldiv1">{{ res_df|safe }}</div> -->
 
@@ -252,7 +254,8 @@ $(document).ready(function($)
 </div>
 
 <div class="panel btn">
-  <input type="button" value=" RESET " id="resetBtn">
+  <input type="button" value=" RESET " id="resetBtn" style="margin-right:25px;"">
+  <input type="button" value=" CODE " id="exportBtn">
 </div>
 
 

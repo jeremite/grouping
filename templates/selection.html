@@ -2,8 +2,6 @@
 {% block body %}
 
 
-
-
   <form method="GET">
       Table: <select name="file_name">
         {% for file in files %}
@@ -13,7 +11,7 @@
         <input type="submit" value="Submit">
   </form>
   <form action="{{ url_for('createtable') }}" method="post">
-      Raw_Feature: <select multiple name="col1">
+      Raw_Feature: <select name="col1" multiple>
         {% for col in cols %}
           <option value="{{col}}" {{'selected="selected"' if col1==col}}>{{col}}</option>
         {% endfor %}

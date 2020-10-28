@@ -38,9 +38,14 @@ def show(name):
         table = pd.read_parquet(csvFile,  engine='pyarrow')
         table = table.head(20)
     '''
-    table=pd_read(name,sample=20)
+    df_show=pd_read(name,sample=20)
+    #if df_show.empty:
+    #    return render_template('index.html', files=files, fileName='')
+    if df_show is not None:
+        return render_template('index.html', files=files, fileName= name, data=df_show.to_html())
+    else:
+        return render_template('index.html', files=files, fileName='')
 
-    return render_template('index.html', files=files, fileName= name, data=table.to_html())
 
 @app.route('/selection',methods=['GET','POST'])
 def selection():
@@ -71,7 +76,10 @@ def selection():
 @app.route('/display')
 def display():
     file_name = DB.get_file_name()
+    #data_ori,data_res,all_used_cols,res_used_cols = DB.get_table(file_name)
+    #DB.get_defalt(file_name)
     data_ori,data_res,all_used_cols,res_used_cols = DB.get_table(file_name)
+
     ajax_df = json.dumps(data_ori.to_dict('records'))
     ajax_df_res = json.dumps(data_res.to_dict('records'))
     #res_df = data_res.to_html(index = False)
@@ -89,7 +97,11 @@ def createtable():
     cnt_col= post_values_with_fallback("cnt_col")
     rate_col= post_values_with_fallback("rate_col")
     all_cols = list([col1]+[col2])+list(cnt_col)+list(rate_col)
+    all_cols = [c.strip() for c in all_cols]
     df = pd_read(file_name,used_cols=all_cols)
+    #make col1 and col2 string
+    df[[col1,col2]]=df[[col1,col2]].astype(str)
+    DB.drop_table('params')
     DB.add_params(col1,col2,cnt_col,rate_col)
     DB.add_table(file_name,df)
     #expires = datetime.datetime.now() + datetime.timedelta(days=365)
@@ -113,7 +125,7 @@ def update():
 @app.route('/reset', methods=["POST"])
 def reset():
     file_name = DB.get_file_name()
-    data_ori,data_res,all_used_cols,res_used_cols = DB.get_defalt(file_name)
+    DB.get_defalt(file_name)
     return "reset"
 
 
