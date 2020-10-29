@@ -8,6 +8,8 @@ Currently, it supports .csv and .parquet file only.
     sudo docker-compose build
     sudo docker-compose up
     ```
+    *how to start: click "Feature" , then select the dataset CCLF1_RI.csv; then select CCLF8_BENE_AGE for Raw_Feature, GROUPING for Grouping_Feature, CCLF8_ACO_ID for Need_Count, CCLF1_CLM_PMT_AMT_ADJ for Need_Rate;
+
 # 3.  **need to do**
  1. bugs:
   - can't click data in navigation panel when in the feature display page
