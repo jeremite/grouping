@@ -8,7 +8,7 @@ import json
 import datetime
 import numpy as np
 import sys
-
+#from app import app
 
 
 
@@ -251,4 +251,4 @@ def Login():
     return render_template('login.html')
 '''
 if __name__ == '__main__':
-    app.run(port=3000, debug=True)
+    app.run(port=3000, debug=True,host='0.0.0.0')

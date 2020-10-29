@@ -3,12 +3,13 @@ from bson.objectid import ObjectId
 import numpy as np
 import pandas as pd
 import sys
+import os
 DATABASE = "grouping"
 
 class DBHelper:
 
     def __init__(self):
-        client = pymongo.MongoClient()
+        client = pymongo.MongoClient(os.environ["DB_PORT_27017_TCP_ADDR"], 27017)
         self.db = client[DATABASE]
 
     def add_file_name(self,file_name):
