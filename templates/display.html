@@ -3,9 +3,7 @@
 {% block body %}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-<!--<script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>-->
 <script src="static/js/sorttable.js" type="text/javascript"></script>
-
 
 
 <script type="text/javascript">
@@ -190,15 +188,23 @@ $(document).ready(function($)
 	})
 	//--->save single field data > end
 
-  $('#resetBtn').click(function(){
-    $(document).find('.tbl_user_data').html(tbl_user);
-    $(document).find('.tbl_res_data').html(tbl_res);
-    var newTableObject_user_1 = document.getElementById('tb1')
-    sorttable.makeSortable(newTableObject_user_1)
-    var newTableObject_res_1 = document.getElementById('tb2')
-    sorttable.makeSortable(newTableObject_res_1)
-    console.log("PRINTREST",tbl_res)
-})
+
+    $('#resetBtn').on('click', function(e) {
+      e.preventDefault()
+      $.getJSON('/reset',
+          function(data) {
+        //do nothing
+      });
+      $(document).find('.tbl_user_data').html(tbl_user);
+      $(document).find('.tbl_res_data').html(tbl_res);
+      var newTableObject_user_1 = document.getElementById('tb1')
+      sorttable.makeSortable(newTableObject_user_1)
+      var newTableObject_res_1 = document.getElementById('tb2')
+      sorttable.makeSortable(newTableObject_res_1)
+      return false;
+    });
+
+
 
 
   //});
@@ -212,11 +218,12 @@ $(document).ready(function($)
   width: 100%;
   overflow: scroll;
   border: 1px solid #666;
-
   padding: 8px;
   }
-  .btn{display: inline-block; margin-right: 10px;}
 
+  form.row{ width: 200px;
+        display: inline-block;
+        margin-left:100px;}
 </style>
 
 <script src="static/js/sorttable.js" type="text/javascript"></script>
@@ -246,13 +253,15 @@ $(document).ready(function($)
 </div>
 
 <div class="panel btn">
-  <input type="button" value=" RESET " id="resetBtn" style="margin-right:25px;">
-  <form action="{{ url_for('python_code') }}" method="post">
-  <input type="submit" value=" .PYTHON " id="export_python" formtarget=”_blank”>
-  </form>
-  <form action="{{ url_for('pyspark_code') }}" method="post" target="_blank">
-  <input type="submit" value=" .PYSPARK " id="export_pyspark" formtarget=”_blank”>
-  </form>
+  <input type="button" value=" RESET " id="resetBtn">
+
+    <form class="row" action="{{ url_for('python_code') }}" method="post">
+      <input type="submit" value=" .PYTHON " id="export_python" formtarget=”_blank”>
+    </form>
+    <form class="row" action="{{ url_for('pyspark_code') }}" method="post">
+      <input type="submit" value=" .PYSPARK " id="export_pyspark" formtarget=”_blank”>
+    </form>
+  </div>
 </div>
 
 

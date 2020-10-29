@@ -9,7 +9,12 @@ DATABASE = "grouping"
 class DBHelper:
 
     def __init__(self):
-        client = pymongo.MongoClient(os.environ["DB_PORT_27017_TCP_ADDR"], 27017)
+        if "DB_PORT_27017_TCP_ADDR" in os.environ:
+            HOSTIP = os.environ["DB_PORT_27017_TCP_ADDR"]
+        else:
+            HOSTIP = "localhost"
+        client = pymongo.MongoClient(HOSTIP, 27017)
+        #client = pymongo.MongoClient(os.environ["DB_PORT_27017_TCP_ADDR"], 27017)
         self.db = client[DATABASE]
 
     def add_file_name(self,file_name):
@@ -35,6 +40,8 @@ class DBHelper:
         #if file_name in self.db.list_collection_names():
         #    print('has already')
         #    return
+        if file_name in self.db.list_collection_names():
+            self.drop_table(file_name)
         db_table = self.db[file_name]
         #db_table_res = self.db[file_name+"_res"]
         params = self.get_params()
@@ -42,8 +49,7 @@ class DBHelper:
         df = self.helper_agg(df,list([params['ft']]+[params['gr_ft']]),params['cnt_ft'],params['avg_ft'])
         #df_res = self.helper_agg(df,params['gr_ft'],params['cnt_ft']+['cnt'],params['avg_ft'],True)
         #print('df before insert',df)
-        if file_name in self.db.list_collection_names():
-            self.drop_table(file_name)
+
         db_table.insert_many(df.to_dict('records'))
 
         # do a backup in order to reset
@@ -51,7 +57,7 @@ class DBHelper:
             db_ori = self.db[file_name+'_record_ori']
             #db_cal = self.db[file_name+'_record_cal']
             #db_col = self.db[file_name+'_cols']
-            db_ori.insert_many(df.copy().to_dict('records'))
+            db_ori.insert_many(df.to_dict('records'))
             #db_cal.insert_many(df_cal.to_dict('records'))
             #db_col.insert_one({'all_used_cols':all_used_cols,'res_used_cols':res_used_cols})
         #db_table_res.insert_many(df_res.to_dict('records'))
@@ -96,11 +102,11 @@ class DBHelper:
         df_res = self.helper_agg(df.copy(),params['gr_ft'],params['cnt_ft'],params['avg_ft']+['cnt'],True)
 
         #get two tables
-        df_cal = self.helper_cal(df_res,params['cnt_ft'],params['avg_ft'])
+        df_cal = self.helper_cal(df_res.copy(),params['cnt_ft'],params['avg_ft'])
         res_used_cols = df_cal.columns.tolist()
 
         if not update:
-            df_ori = self.helper_cal(df,params['cnt_ft'],params['avg_ft'])
+            df_ori = self.helper_cal(df.copy(),params['cnt_ft'],params['avg_ft'])
             all_used_cols = df_ori.columns.tolist()
             return df_ori,df_cal,all_used_cols,res_used_cols
 

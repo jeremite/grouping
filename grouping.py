@@ -103,6 +103,7 @@ def createtable():
     df[[col1,col2]]=df[[col1,col2]].astype(str)
     DB.drop_table('params')
     DB.drop_table('updates')
+    DB.drop_table(file_name+'_record_ori')
     DB.add_params(col1,col2,cnt_col,rate_col)
     DB.add_table(file_name,df)
     #expires = datetime.datetime.now() + datetime.timedelta(days=365)
@@ -123,10 +124,11 @@ def update():
     return jsonify({'ajax_res_data': ajax_res_data,
                     'ajax_res_cols': ajax_res_cols})
 
-@app.route('/reset', methods=["POST"])
+@app.route('/reset')
 def reset():
     file_name = DB.get_file_name()
     DB.get_defalt(file_name)
+    DB.drop_table('updates')
     return "reset"
 
 @app.route('/python_code', methods=["POST"])
@@ -229,7 +231,6 @@ def get_values_with_fallback(key):
 
 
 '''
-
 @app.route('/', methods=['POST'])
 def upload_files():
     for uploaded_file in request.files.getlist('file'):
@@ -241,11 +242,9 @@ def upload_files():
             uploaded_file.save(os.path.join(app.config['UPLOAD_PATH'], filename))
         #uploaded_file.save(uploaded_file.filename)
     return redirect(url_for('index'))
-
 @app.route('/uploads/<filename>')
 def upload(filename):
     return send_from_directory(app.config['UPLOAD_PATH'], filename)
-
 @app.route('/Login')
 def Login():
     return render_template('login.html')
