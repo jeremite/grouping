@@ -1,0 +1,2 @@
+recursive-include grouping/*
+include Dockerfile *.yml *.txt

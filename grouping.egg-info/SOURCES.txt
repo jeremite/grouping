@@ -1,0 +1,12 @@
+MANIFEST.in
+setup.py
+grouping/__init__.py
+grouping/cli.py
+grouping/dbhelper.py
+grouping/views.py
+grouping.egg-info/PKG-INFO
+grouping.egg-info/SOURCES.txt
+grouping.egg-info/dependency_links.txt
+grouping.egg-info/entry_points.txt
+grouping.egg-info/requires.txt
+grouping.egg-info/top_level.txt

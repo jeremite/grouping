@@ -1,0 +1,268 @@
+
+{% extends "layout.html" %}
+{% block body %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="static/js/sorttable.js" type="text/javascript"></script>
+
+
+<script type="text/javascript">
+$(document).ready(function($)
+{
+	//ajax row data
+
+  var jsonz = {{ ajax_df|tojson }};
+  var ajax_data = JSON.parse(jsonz);
+  var indx = {{indx|tojson}};
+  var edit_col = {{edit_col|tojson}};
+  var jsoncol = {{ all_used_cols|tojson }};
+  var ajax_cols = JSON.parse(jsoncol);
+
+
+  var jsonz_res = {{ajax_df_res|tojson}};
+  var ajax_res_data = JSON.parse(jsonz_res);
+  var jsoncol_res = {{ res_used_cols|tojson }};
+  var ajax_res_cols = JSON.parse(jsoncol_res);
+
+//--->	[
+//--->		{fname:"Code", lname:"With Mark", email:"mark@codewithmark.com"},
+//--->		{fname:"Mary", lname:"Moe", email:"mary@gmail.com"},
+//--->		{fname:"John", lname:"Doe", email:"john@yahoo.com"},
+//--->		{fname:"Julie", lname:"Dooley", email:"julie@gmail.com"},
+//--->	]
+
+
+
+  function create_res(cols,data,edit_col,id){
+    //--->create data table > start
+  	var tbl = '';
+    //var tbl_res = '';
+    //--->var allall_used_colsvar jsonz = {{ ajax_df|tojson }};
+    //--->var ajax_data = JSON.parse(jsonz);
+
+  	tbl +='<table id="'+id+'" class="table table-hover sortable">'
+  		//--->create table header > start
+  		tbl +='<thead>';
+  			tbl +='<tr>';
+        $.each( cols, function( index, value ){
+            tbl += '<th>'+value+'</th>';
+        });
+  			//--->tbl +='<th>First Name</th>';
+  			//--->tbl +='<th>Last Name</th>';
+  			//--->tbl +='<th>Email</th>';
+  			//--->tbl +='<th>Options</th>';
+  			tbl +='</tr>';
+  		tbl +='</thead>';
+  		//--->create table header > end
+
+
+  		//--->create table body > start
+  		tbl +='<tbody>';
+
+  			//--->create table body rows > start
+  			$.each(data, function(index, val) //for each row of the data
+  			{
+  				//you can replace with your database row id
+  				//var row_id = random_id();
+
+  				//loop through ajax row data
+  				tbl +='<tr row_id="'+val[indx]+'">';
+            $.each( cols, function( index, value ){  //for each col of the data
+              if (value==edit_col){
+              //console.log("PRINTEDIT",value)
+              tbl +='<td ><div class="row_data" edit_type="click" col_name="'+value+'">'+val[value]+'</div></td>';
+            } else {
+              //console.log("PRINTNOTEDIT",value)
+              tbl +='<td ><div class="not_edit" col_name="'+value+'" contentEditable="false" readonly>'+val[value]+'</div></td>';
+            }
+              	//--->  tbl += '<th>'+value+'</th>';
+            });
+  						//--->tbl +='<td ><div class="row_data" edit_type="click" col_name="fname">'+val['ID']+'</div></td>';
+  						//--->tbl +='<td ><div class="row_data" edit_type="click" col_name="lname">'+val['category']+'</div></td>';
+  						//--->tbl +='<td ><div class="row_data" edit_type="click" col_name="email">'+val['year']+'</div></td>';
+
+  					//--->edit options > start
+
+  					//--->edit options > end
+
+  				tbl +='</tr>';
+  			});
+
+  			//--->create table body rows > end
+
+  		tbl +='</tbody>';
+  		//--->create table body > end
+
+  	tbl +='</table>'
+  	//--->create data table > end
+
+
+
+    return tbl
+  }
+
+
+  var tbl_user = create_res(ajax_cols,ajax_data,edit_col,'tb1')
+  var tbl_res = create_res(ajax_res_cols,ajax_res_data,'not','tb2')
+  //deep copy the original vars
+  //var copied_user = JSON.parse(JSON.stringify(tbl));
+  //var copied_res = JSON.parse(JSON.stringify(tbl_res));
+
+
+	//out put table data
+	$(document).find('.tbl_user_data').html(tbl_user);
+  $(document).find('.tbl_res_data').html(tbl_res);
+  var newTableObject_user_1 = document.getElementById('tb1')
+  sorttable.makeSortable(newTableObject_user_1)
+  var newTableObject_res_1 = document.getElementById('tb2')
+  sorttable.makeSortable(newTableObject_res_1)
+
+
+	//--->make div editable > start
+	$(document).on('click', '.row_data', function(event)
+	{
+		event.preventDefault();
+
+		if($(this).attr('edit_type') == 'button')
+		{
+			return false;
+		}
+
+		//make div editable
+		$(this).closest('div').attr('contenteditable', 'true');
+		//add bg css
+		$(this).addClass('bg-warning').css('padding','5px');
+
+		$(this).focus();
+	})
+	//--->make div editable > end
+
+	//--->save single field data > start
+	$(document).on('focusout', '.row_data', function(event)
+	{
+		event.preventDefault();
+
+		if($(this).attr('edit_type') == 'button')
+		{
+			return false;
+		}
+
+		var row_id = $(this).closest('tr').attr('row_id'); //row_id is set to indx
+
+		var row_div = $(this)
+		.removeClass('bg-warning') //add bg css
+		.css('padding','')
+
+		var col_name = row_div.attr('col_name');
+		var col_val = row_div.html();
+
+		var arr = {};
+		arr["edit"] = col_val;
+
+		//use the "arr"	object for your ajax call
+		$.extend(arr, {row_id:row_id});
+
+    console.log('PRINTLOG',arr, row_id)
+
+   $.ajax({
+   type: 'POST',
+   url: '/update',
+   data: JSON.stringify(arr),
+   contentType: 'application/json; charset=UTF-8',
+   dataType: 'json',
+   success: function(data){
+     console.log(data)
+
+     var tbl_res_new = create_res(JSON.parse(data['ajax_res_cols']),JSON.parse(data['ajax_res_data']),'not','tb_new');
+    $(document).find('.tbl_res_data').html(tbl_res_new);
+    var newTableObject_res_2 = document.getElementById('tb_new')
+    sorttable.makeSortable(newTableObject_res_2)
+    console.log("PRINTNEW",tbl_res_new)
+    //$( ".sortable" ).sortable( "refresh" );
+   },
+   error: function(err) {
+       console.log("lose");
+   }
+});
+
+	})
+	//--->save single field data > end
+
+
+    $('#resetBtn').on('click', function(e) {
+      e.preventDefault()
+      $.getJSON('/reset',
+          function(data) {
+        //do nothing
+      });
+      $(document).find('.tbl_user_data').html(tbl_user);
+      $(document).find('.tbl_res_data').html(tbl_res);
+      var newTableObject_user_1 = document.getElementById('tb1')
+      sorttable.makeSortable(newTableObject_user_1)
+      var newTableObject_res_1 = document.getElementById('tb2')
+      sorttable.makeSortable(newTableObject_res_1)
+      return false;
+    });
+
+
+
+
+  //});
+
+
+});
+</script>
+<style>
+  #scrolldiv2.tbl_res_data {
+  height: 300px;
+  width: 100%;
+  overflow: scroll;
+  border: 1px solid #666;
+  padding: 8px;
+  }
+
+  form.row{ width: 200px;
+        display: inline-block;
+        margin-left:100px;}
+</style>
+
+<script src="static/js/sorttable.js" type="text/javascript"></script>
+
+
+
+<div class="panel panel-default up">
+  <div class="panel-heading"><b> Grouping Result </b> </div>
+
+  <div class="panel-body">
+
+	<div class="tbl_res_data" id="scrolldiv2"></div>
+
+  </div>
+</div>
+
+
+<div class="panel panel-default down">
+  <div class="panel-heading"><b> Raw Feature </b> </div>
+
+  <div class="panel-body">
+
+	<div class="tbl_user_data" id="scrolldiv1"></div>
+
+  </div>
+
+</div>
+
+<div class="panel btn">
+  <input type="button" value=" RESET " id="resetBtn">
+
+    <form class="row" action="{{ url_for('python_code') }}" method="post">
+      <input type="submit" value=" .PYTHON " id="export_python" formtarget=”_blank”>
+    </form>
+    <form class="row" action="{{ url_for('pyspark_code') }}" method="post">
+      <input type="submit" value=" .PYSPARK " id="export_pyspark" formtarget=”_blank”>
+    </form>
+  </div>
+</div>
+
+
+{% endblock %}

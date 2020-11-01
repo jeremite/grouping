@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block body %}
+
+                {% if not fileName== '' %}
+                        <h2>{{ fileName }}</h2>
+                        <div id="scrolldiv1">{{ data|safe }}</div>
+                    {% else %}
+                        <h2>A tool to show and twist the grouping results</h2>
+                        <p>Click Data on left to see the data samples</p>
+                        <p>Click Feature on left to see the grouping results</p>
+
+                {% endif %}
+
+
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block body %}
+
+
+                        <h2>Replace df with the dataframe variable you use</h2>
+                        <p>from itertools import chain</p>
+                        <p>from pyspark.sql.functions import coalesce,lit, col, create_map</p>
+                        <p>map_values = {{final}}</p>
+                        <p>mapping_expr  = create_map([lit(x) for x in chain(*map_values.items())])</p>
+                        <p>df=df.withColumn({{col2}}, coalesce(mapping_expr[df[{{col1}}]], df[{{col2}}]))</p>
+
+
+
+{% endblock %}

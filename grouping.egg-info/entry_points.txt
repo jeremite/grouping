@@ -1,0 +1,3 @@
+[console_scripts]
+grouping_run = grouping.cli:main
+

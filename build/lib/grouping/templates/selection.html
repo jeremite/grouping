@@ -1,0 +1,415 @@
+{% extends "layout.html" %}
+{% block body %}
+<style>
+  select {
+      display: inline-block;
+      width: 10em;
+      overflow: scroll;
+  }
+
+  label {
+      display: inline-block;
+      width: 10em;
+      margin-right: .5em;
+      padding-top: 1.5em;
+      text-align:center;
+  }
+</style>
+  <form method="GET">
+    <label for="file_name"> DataSet:
+
+       <select class = "chzn_select" name="file_name">
+        {% for file in files %}
+          <option value="{{file}}" {{'selected="selected"' if file_name==file}}>{{file}}</option>
+        {% endfor %}
+        </select>
+        </label>
+        <input type="submit" value="Submit">
+  </form>
+  <form action="{{ url_for('createtable') }}" method="post">
+      <label for="col1"> Raw_Feature:
+      <select class = "chzn_select" name="col1" multiple>
+        {% for col in cols %}
+          <option class="option1" value="{{col}}" {{'selected="selected"' if col1==col}}>{{col}}</option>
+        {% endfor %}
+        </select>
+         </label>
+      <label for="col2"> Grouping_Feature:
+        <select class = "chzn_select" multiple name="col2">
+        {% for col in cols %}
+          <option value="{{col}}" {{'selected="selected"' if col2==col}}>{{col}}</option>
+        {% endfor %}
+        </select>
+        </label>
+      <label for="cnt_col"> Need_Count:
+       <select class = "chzn_select" multiple name="cnt_col">
+        {% for col in cols %}
+          <option value="{{col}}" {{'selected="selected"' if cnt_col==col}}>{{col}}</option>
+        {% endfor %}
+        </select>
+        </label>
+      <label for="rate_col"> Need_Rate:
+       <select class = "chzn_select" multiple name="rate_col">
+        {% for col in cols %}
+         <option value='{{col}}' {{'selected="selected"' if rate_col==col}}>{{col}}</option>
+        {% endfor %}
+          </select>
+          </label>
+        <input type="submit" value="Submit">
+  </form>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.6.1/chosen.jquery.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.6.1/chosen.css" />
+  <script>
+    $(document).bind("pageinit", function() {
+        $(".chzn-select").chosen();
+    });
+  </script>
+{% endblock %}
+
+
+
+<!--
+<script type="text/javascript">
+ function pageLoad() {
+   $(document).ready(function () {
+     // Set up our dropzone
+     $("#in_available_fields")
+       .sortable({
+         connectWith: ".sortable-list",
+         placeholder: "placeholder",
+         start: function (event, ui) {
+           if (!$(ui.item).hasClass("allowPrimary")) {
+             $(".primaryPanel")
+               .removeClass("panel-primary")
+               .addClass("panel-danger");
+           }
+           if (!$(ui.item).hasClass("allowSecondary")) {
+             $(".secondaryPanel")
+               .removeClass("panel-primary")
+               .addClass("panel-danger");
+           }
+           if (!$(ui.item).hasClass("allowExport")) {
+             $(".exportPanel")
+               .removeClass("panel-primary")
+               .addClass("panel-danger");
+           }
+           checkFields();
+         },
+         stop: function (event, ui) {
+           if (!$(ui.item).hasClass("allowPrimary")) {
+             $(".primaryPanel")
+               .removeClass("panel-danger")
+               .addClass("panel-primary");
+           }
+           if (!$(ui.item).hasClass("allowSecondary")) {
+             $(".secondaryPanel")
+               .removeClass("panel-danger")
+               .addClass("panel-primary");
+           }
+           if (!$(ui.item).hasClass("allowExport")) {
+             $(".exportPanel")
+               .removeClass("panel-danger")
+               .addClass("panel-primary");
+           }
+         },
+         change: function (event, ui) {
+           checkFields();
+         },
+         update: function (event, ui) {
+           checkFields();
+         },
+         out: function (event, ui) {
+           checkFields();
+         }
+       })
+       .disableSelection();
+
+     // Enable dropzone for primary fields
+     $(".primaryDropzone")
+       .sortable({
+         connectWith: ".sortable-list",
+         placeholder: "placeholder",
+         receive: function (event, ui) {
+           // If we dont allow primary fields here, cancel
+           if (!$(ui.item).hasClass("allowPrimary")) {
+             $(ui.placeholder).css("display", "none");
+             $(ui.sender).sortable("cancel");
+           }
+         },
+         over: function (event, ui) {
+           if (!$(ui.item).hasClass("allowPrimary")) {
+             $(ui.placeholder).css("display", "none");
+           } else {
+             $(ui.placeholder).css("display", "");
+           }
+         },
+         start: function (event, ui) {
+           checkFields();
+         },
+         change: function (event, ui) {
+           checkFields();
+         },
+         update: function (event, ui) {
+           checkFields();
+         },
+         out: function (event, ui) {
+           checkFields();
+         }
+       })
+       .disableSelection();
+
+     // Enable dropzone for secondary fields
+     $(".secondaryDropzone")
+       .sortable({
+         connectWith: ".sortable-list",
+         placeholder: "placeholder",
+         receive: function (event, ui) {
+           // If we dont allow secondary fields here, cancel
+           if (!$(ui.item).hasClass("allowSecondary")) {
+             $(ui.sender).sortable("cancel");
+           }
+         },
+         over: function (event, ui) {
+           if (!$(ui.item).hasClass("allowSecondary")) {
+             $(ui.placeholder).css("display", "none");
+           } else {
+             $(ui.placeholder).css("display", "");
+           }
+           checkFields();
+         },
+         start: function (event, ui) {
+           if (!$(ui.item).hasClass("allowPrimary")) {
+             $(".primaryPanel")
+               .removeClass("panel-primary")
+               .addClass("panel-danger");
+           }
+           if (!$(ui.item).hasClass("allowSecondary")) {
+             $(".secondaryPanel")
+               .removeClass("panel-primary")
+               .addClass("panel-danger");
+           }
+           if (!$(ui.item).hasClass("allowExport")) {
+             $(".exportPanel")
+               .removeClass("panel-primary")
+               .addClass("panel-danger");
+           }
+           checkFields();
+         },
+         stop: function (event, ui) {
+           if (!$(ui.item).hasClass("allowPrimary")) {
+             $(".primaryPanel")
+               .removeClass("panel-danger")
+               .addClass("panel-primary");
+           }
+           if (!$(ui.item).hasClass("allowSecondary")) {
+             $(".secondaryPanel")
+               .removeClass("panel-danger")
+               .addClass("panel-primary");
+           }
+           if (!$(ui.item).hasClass("allowExport")) {
+             $(".exportPanel")
+               .removeClass("panel-danger")
+               .addClass("panel-primary");
+           }
+         },
+         change: function (event, ui) {
+           checkFields();
+         },
+         update: function (event, ui) {
+           checkFields();
+         },
+         out: function (event, ui) {
+           checkFields();
+         }
+       })
+       .disableSelection();
+
+     // Enable dropzone for export fields
+     $(".exportDropzone")
+       .sortable({
+         connectWith: ".sortable-list",
+         placeholder: "placeholder",
+         receive: function (event, ui) {
+           // If we dont allow export fields here, cancel
+           if (!$(ui.item).hasClass("allowExport")) {
+             $(ui.sender).sortable("cancel");
+           }
+           checkFields();
+         },
+         over: function (event, ui) {
+           if (!$(ui.item).hasClass("allowExport")) {
+             $(ui.placeholder).css("display", "none");
+           } else {
+             $(ui.placeholder).css("display", "");
+           }
+           checkFields();
+         },
+         start: function (event, ui) {
+           if (!$(ui.item).hasClass("allowPrimary")) {
+             $(".primaryPanel")
+               .removeClass("panel-primary")
+               .addClass("panel-danger");
+           }
+           if (!$(ui.item).hasClass("allowSecondary")) {
+             $(".secondaryPanel")
+               .removeClass("panel-primary")
+               .addClass("panel-danger");
+           }
+           if (!$(ui.item).hasClass("allowExport")) {
+             $(".exportPanel")
+               .removeClass("panel-primary")
+               .addClass("panel-danger");
+           }
+           checkFields();
+         },
+         stop: function (event, ui) {
+           if (!$(ui.item).hasClass("allowPrimary")) {
+             $(".primaryPanel")
+               .removeClass("panel-danger")
+               .addClass("panel-primary");
+           }
+           if (!$(ui.item).hasClass("allowSecondary")) {
+             $(".secondaryPanel")
+               .removeClass("panel-danger")
+               .addClass("panel-primary");
+           }
+           if (!$(ui.item).hasClass("allowExport")) {
+             $(".exportPanel")
+               .removeClass("panel-danger")
+               .addClass("panel-primary");
+           }
+         },
+         change: function (event, ui) {
+           checkFields();
+         },
+         update: function (event, ui) {
+           checkFields();
+         },
+         out: function (event, ui) {
+           checkFields();
+         }
+       })
+       .disableSelection();
+   });
+ }
+ // Checks to see if the fields section has fields selected. If not, shows a placeholder
+ function checkFields() {
+   if ($("[name=in_primary_fields] li").length >= 1) {
+     $(".primaryPanel").find(".alert").hide();
+   } else {
+     $(".primaryPanel").find(".alert").show();
+   }
+
+   if ($("[name=in_secondary_fields] li").length >= 1) {
+     $(".secondaryPanel").find(".alert").hide();
+   } else {
+     $(".secondaryPanel").find(".alert").show();
+   }
+
+   if ($("[name=in_export_fields] li").length >= 1) {
+     $(".exportPanel").find(".alert").hide();
+   } else {
+     $(".exportPanel").find(".alert").show();
+   }
+ }
+
+</script>
+
+<content onload=" pageLoad()">
+<div class="alert alert-info small"><i class="fa fa-comment"></i>&nbsp;&nbsp;Drag &amp; Drop fields from the left (Available Fields) over to the right side in the desired location on your dashboard.</div>
+<span name="el_validationErrorFields"></span>
+<br />
+<div class="row dragSortableItems">
+<div class="col-md-6">
+<div class="card">
+<div class="card-header"><i class="fa fa-folder-open"></i>&nbsp;&nbsp;Available Fields</div>
+<div class="card-body well">
+  <ul id="in_available_fields" name="in_available_fields" class="custom-scrollbar in_available_fields sortable-list fixed-panel ui-sortable">
+    <li class="sortable-item  allowSecondary allowExport" data-fid="3">Tool Description</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="4">Tool Type</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="5">Tool Suite</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="6">Tool Portfolio</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="7">Tool Status</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="8">Tool Owner QID</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="9">Tool Owner NTID</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="10">Tool Owner Email</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="11">Tool Owner First Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="12">Tool Owner Last Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="13">Tool Owner Preferred Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="14">Tool Owner Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="15">Tool Owner Location</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="16">Tool Owner Title</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="17">Tool Last Updated Date</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="18">Tool Suite Owner QID</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="19">Tool Suite Owner NTID</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="20">Tool Suite Owner Email</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="21">Tool Suite Owner First Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="22">Tool Suite Owner Last Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="23">Tool Suite Owner Preferred Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="24">Tool Suite Owner Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="25">Tool Suite Owner Location</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="26">Tool Suite Owner Title</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="27">Tool Portfolio Owner QID</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="28">Tool Portfolio Owner NTID</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="29">Tool Portfolio Owner Email</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="30">Tool Portfolio Owner First Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="31">Tool Portfolio Owner Last Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="32">Tool Portfolio Owner Preferred Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="33">Tool Portfolio Owner Name</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="34">Tool Portfolio Owner Location</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="35">Tool Portfolio Owner Title</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="36">Planned Replacement</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="37">Deprecation ETA</li>
+    <li class="sortable-item  allowSecondary allowExport" data-fid="38">Deprecation Notes</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="39">Replacement</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="40">Decommission Date</li>
+    <li class="sortable-item  allowSecondary allowExport" data-fid="41">Decommission Notes</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="42">Info Sec Approved</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="43">Single Sign on</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="44">Major Tool</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="45">Tool Tier</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="51">Tool Owner Group</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="52">Tool Main Link</li>
+    <li class="sortable-item allowPrimary allowSecondary allowExport" data-fid="53">Userbase Count</li>
+  </ul>
+</div>
+</div>
+</div>
+<div class="col-md-6">
+<div class="card primaryPanel">
+<div class="card-header"><i class="fa fa-star"></i>&nbsp;&nbsp;Primary Fields</div>
+<div class="card-body well">
+  <div class="alert alert-warning small">
+    <center>No Fields Selected</center>
+  </div>
+  <ul name="in_primary_fields" class="sortable-list primaryDropzone fixed-panel"></ul>
+</div>
+</div>
+<br />
+<div class="card secondaryPanel">
+<div class="card-header"><i class="fa fa-star-o"></i>&nbsp;&nbsp;Secondary Fields</div>
+<div class="card-body well">
+  <div class="alert alert-warning small">
+    <center>No Fields Selected</center>
+  </div>
+  <ul name="in_secondary_fields" class="sortable-list secondaryDropzone fixed-panel" data-fieldtype="secondary"></ul>
+</div>
+</div>
+<br />
+<div class="card exportPanel">
+<div class="card-header"><i class="fa fa-download"></i>&nbsp;&nbsp;Export Fields</div>
+<div class="card-body well">
+  <div class="alert alert-warning small">
+    <center>No Fields Selected</center>
+  </div>
+  <ul name="in_export_fields" class="sortable-list exportDropzone fixed-panel"></ul>
+</div>
+</div>
+</div>
+</div>
+
+</content>
+
+-->
