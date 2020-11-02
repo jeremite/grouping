@@ -12,7 +12,7 @@ grouping_files = package_files("grouping/")
 #other_files = package_files("my_grouping/")
 setup(
     name = 'grouping',
-    version='0.0.8',
+    version='0.1.1',
     license='GNU General Public License v3',
     author='Travis Li',
     author_email='weixing.li@verisk.com',
@@ -25,7 +25,7 @@ setup(
     package_data={
     'grouping': grouping_files
 },
-    #data_files=[('my_grouping', ['Dockerfile','docker-compose.yml'])],
+    #data_files=[('grouping',grouping_files)],
     classifiers=[],
     include_package_data=True,
     entry_points={

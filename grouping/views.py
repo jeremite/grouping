@@ -34,28 +34,19 @@ for obj in bucket.objects.filter(Delimiter='/',Prefix=pre):
     if f:
         s3_file_names.append(f)
 
+files = [file for file in s3_file_names if file.endswith(".csv") or file.endswith(".parquet")]
 
 @app.route('/')
 def home():
-    files = os.listdir(csvfolderpath)
-    files = [file for file in files if file.endswith(".csv") or file.endswith(".parquet")]
-    s3_files = [file for file in s3_file_names if file.endswith(".csv") or file.endswith(".parquet")]
-    df = pd_read(files[-1],sample=20)
-    return render_template('index.html', files=files, s3_files = s3_files,fileName='')
-
+    #files = os.listdir(csvfolderpath)
+    #files = [file for file in files if file.endswith(".csv") or file.endswith(".parquet")]
+    #df = pd_read(files[-1],sample=20)
+    return render_template('index.html', files = files,fileName='')
+'''
 @app.route('/<name>')
 def show(name):
     #csvFile = os.path.join(csvfolderpath, name)
     files = os.listdir(csvfolderpath)
-    #s3 s3_files
-    #table = None
-    '''
-    if '.csv' in csvFile:
-        table = pd.read_csv(csvFile, nrows=20)
-    if '.parquet' in csvFile:
-        table = pd.read_parquet(csvFile,  engine='pyarrow')
-        table = table.head(20)
-    '''
     df_show=pd_read(name,sample=20)
     #if df_show.empty:
     #    return render_template('index.html', files=files, fileName='')
@@ -63,24 +54,22 @@ def show(name):
         return render_template('index.html', files=files, fileName= name, data=df_show.to_html())
     else:
         return render_template('index.html', files=files, fileName='')
-
-@app.route('/<s3_name>')
-def s3_show(s3_name):
+'''
+@app.route('/<name>')
+def s3_show(name):
 
     #s3 s3_files
     df_s3_show = pd_read(name,sample=20,src='s3')
-    #if df_show.empty:
-    #    return render_template('index.html', files=files, fileName='')
     if df_s3_show is not None:
-        return render_template('index_s3.html', files=files, fileName= name,data_s3=df_s3_show.to_html())
+        return render_template('index.html', files=files, fileName= name,data=df_s3_show.to_html())
     else:
-        return render_template('index_s3.html', files=files, fileName='')
+        return render_template('index.html', files=files, fileName='')
 
 @app.route('/selection',methods=['GET','POST'])
 def selection():
 
-    files = os.listdir(csvfolderpath)
-    files = [file for file in files if not file.startswith(".")]
+    #files = os.listdir(csvfolderpath)
+    #files = [file for file in files if not file.startswith(".")]
 
     #file_name = get_value_with_fallback("file_name")
     file_name = get_value_with_fallback('file_name')
@@ -127,7 +116,7 @@ def createtable():
     rate_col= post_values_with_fallback("rate_col")
     all_cols = list([col1]+[col2])+list(cnt_col)+list(rate_col)
     all_cols = [c.strip() for c in all_cols]
-    df = pd_read(file_name,used_cols=all_cols)
+    df = pd_read(file_name,used_cols=all_cols,src='s3')
     #make col1 and col2 string
     df[[col1,col2]]=df[[col1,col2]].astype(str)
     DB.drop_table('params')
@@ -215,7 +204,7 @@ def pd_read(file_name,src='test',sample=None,used_cols=None):
     if src=='test':
         csvFile = os.path.join(csvfolderpath, file_name)
     else:
-        csvFile = os.path.join('s3://',bucket,pre,f)
+        csvFile = os.path.join('s3://',bucket_name,pre,file_name)
     table=None
     if '.csv' in csvFile:
         table = pd.read_csv(csvFile, nrows=sample,usecols=used_cols)
