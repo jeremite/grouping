@@ -116,6 +116,16 @@
                         </ul>
                     </li>
                     <li>
+                        <a href="#s3Submenu" data-toggle="collapse" aria-expanded="false">S3_Data</a>
+                        <ul class="collapse list-unstyled" id="s3Submenu">
+                          {% for s3_name in s3_files: %}
+                             <li>
+                             <a href="{{ s3_name }}">{{ s3_name }}</a>
+                             </li>
+                          {% endfor %}
+                        </ul>
+                    </li>
+                    <li>
                         <a href="/selection">Feature</a>
                     </li>
                 </ul>

@@ -8,6 +8,9 @@ import json
 import datetime
 import numpy as np
 import sys
+import boto3
+import s3fs
+import config
 #from grouping import app
 
 
@@ -18,17 +21,31 @@ DEFAULT_SELECT = "Choose Here"
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))   # refers to application_top
 csvfolderpath = os.path.join(APP_ROOT, 'OutputFolder')
 
+# s3 dataset
+bucket_name = config.bucket_name
+pre = config.prefix
+s3 = boto3.resource('s3')
+bucket = s3.Bucket(bucket_name)
+s3_file_names = []
+for obj in bucket.objects.filter(Delimiter='/',Prefix=pre):
+    f = obj.key.split('/')[-1]
+    if f:
+        s3_file_names.append(f)
+
+
 @app.route('/')
 def home():
     files = os.listdir(csvfolderpath)
     files = [file for file in files if file.endswith(".csv") or file.endswith(".parquet")]
+    s3_files = [file for file in s3_file_names if file.endswith(".csv") or file.endswith(".parquet")]
     df = pd_read(files[-1],sample=20)
-    return render_template('index.html', files=files, fileName='')
+    return render_template('index.html', files=files, s3_files = s3_files,fileName='')
 
 @app.route('/<name>')
 def show(name):
     #csvFile = os.path.join(csvfolderpath, name)
     files = os.listdir(csvfolderpath)
+    #s3 s3_files
     #table = None
     '''
     if '.csv' in csvFile:
@@ -45,6 +62,17 @@ def show(name):
     else:
         return render_template('index.html', files=files, fileName='')
 
+@app.route('/<s3_name>')
+def s3_show(s3_name):
+
+    #s3 s3_files
+    df_s3_show = pd_read(name,sample=20,src='s3')
+    #if df_show.empty:
+    #    return render_template('index.html', files=files, fileName='')
+    if df_s3_show is not None:
+        return render_template('index_s3.html', files=files, fileName= name,data_s3=df_s3_show.to_html())
+    else:
+        return render_template('index_s3.html', files=files, fileName='')
 
 @app.route('/selection',methods=['GET','POST'])
 def selection():
@@ -181,8 +209,11 @@ def do_update(data):
     res_used_cols = json.dumps(res_used_cols)
     return ajax_df_res,res_used_cols
 
-def pd_read(file_name,sample=None,used_cols=None):
-    csvFile = os.path.join(csvfolderpath, file_name)
+def pd_read(file_name,src='test',sample=None,used_cols=None):
+    if src=='test':
+        csvFile = os.path.join(csvfolderpath, file_name)
+    else:
+        csvFile = os.path.join('s3://',bucket,pre,f)
     table=None
     if '.csv' in csvFile:
         table = pd.read_csv(csvFile, nrows=sample,usecols=used_cols)
