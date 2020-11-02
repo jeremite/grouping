@@ -10,7 +10,7 @@ import numpy as np
 import sys
 import boto3
 import s3fs
-import config
+
 #from grouping import app
 
 
@@ -22,8 +22,10 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__))   # refers to application_
 csvfolderpath = os.path.join(APP_ROOT, 'OutputFolder')
 
 # s3 dataset
-bucket_name = config.bucket_name
-pre = config.prefix
+with open('config.json',"r") as f:
+    configs= json.load(f)
+bucket_name = configs['bucket_name']
+pre = configs['prefix']
 s3 = boto3.resource('s3')
 bucket = s3.Bucket(bucket_name)
 s3_file_names = []
