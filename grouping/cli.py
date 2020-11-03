@@ -25,11 +25,12 @@ def main(bucket,prefix):
 
     #res = vars(parser.parse_args())
     os.chdir(os.path.join(pkg_resources.get_distribution("grouping").location,"grouping"))
-    print('check:',(bucket,prefix))
+    #print('check:',(bucket,prefix))
     change_config(bucket,prefix)
 
     #os.chdir(os.path.join(pkg_resources.get_distribution("grouping").location,"grouping"))
-    os.system('docker-compose up')# --build')
+    #os.system('docker-compose up')# --build')
+    os.system('bash run_docker.sh')# --build')
 
 if __name__=='__main__':
     main()

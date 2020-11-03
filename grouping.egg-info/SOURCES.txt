@@ -5,6 +5,7 @@ grouping/__init__.py
 grouping/cli.py
 grouping/dbhelper.py
 grouping/views.py
+grouping/wsgi.py
 grouping.egg-info/PKG-INFO
 grouping.egg-info/SOURCES.txt
 grouping.egg-info/dependency_links.txt

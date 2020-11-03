@@ -15,6 +15,7 @@ import s3fs
 
 
 app = Flask(__name__)
+app.config['DEBUG']=True
 DB = DBHelper()
 
 DEFAULT_SELECT = "Choose Here"
@@ -271,4 +272,4 @@ def Login():
     return render_template('login.html')
 '''
 if __name__ == '__main__':
-    app.run(port=5000, debug=True,host='0.0.0.0')
+    app.run(port=5000,host='0.0.0.0')

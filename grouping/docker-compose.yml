@@ -1,8 +1,8 @@
 web:
   build: .
-  command: python -u views.py
+  command: gunicorn -w 1 -b 0.0.0.0:8000 wsgi:app
   ports:
-    - "5000:5000"
+    - "8000:8000"
   volumes:
     - .:/app
     - ~/.aws/:/root/.aws:ro
