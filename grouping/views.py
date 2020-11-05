@@ -10,7 +10,8 @@ import numpy as np
 import sys
 import boto3
 import s3fs
-
+import io
+import xlsxwriter
 #from grouping import app
 
 
@@ -35,7 +36,8 @@ for obj in bucket.objects.filter(Delimiter='/',Prefix=pre):
     if f:
         s3_file_names.append(f)
 
-files = [file for file in s3_file_names if file.endswith(".csv") or file.endswith(".parquet")]
+files = [file for file in s3_file_names if file.endswith(".csv") or file.endswith(".parquet")\
+                                            or file.endswith(".xlsx")]
 
 @app.route('/')
 def home():
@@ -78,7 +80,7 @@ def selection():
     #used_cols= post_values_with_fallback("used_cols")
     #target_cols= post_values_with_fallback("target_cols")
     #relations,cols = rel_col(file_name,used_cols,target_cols)
-    cols = get_col(file_name)
+    cols = get_col(file_name,src='s3')
 
     response = make_response(render_template("selection.html",
       files=files,
@@ -119,7 +121,7 @@ def createtable():
     all_cols = [c.strip() for c in all_cols]
     df = pd_read(file_name,used_cols=all_cols,src='s3')
     #make col1 and col2 string
-    df[[col1,col2]]=df[[col1,col2]].astype(str)
+    #df[[col1,col2]]=df[[col1,col2]].astype(str)
     DB.drop_table('params')
     DB.drop_table('updates')
     DB.drop_table(file_name+'_record_ori')
@@ -156,16 +158,16 @@ def python_code():
     col1,col2 = DB.get_params()['ft'],DB.get_params()['gr_ft']
     final = {}
     for u in updates:
-        if u['id_val'].isdigit():
+        if str(u['id_val']).isdigit():
             id_val = int(u['id_val'])
         else:
             id_val = u['id_val']
-        if u['gr_val'].isdigit():
+        if str(u['gr_val']).isdigit():
             gr_val = int(u['gr_val'])
         else:
             gr_val = u['gr_val']
         final[id_val]=gr_val
-    codes = "df[raw]=df[grouping].map('+final+')"
+    #codes = "df[raw]=df[grouping].map('+final+')"
     if not final:
         final = "no updates"
     return render_template("python_code.html",final = final, col1=json.dumps(col1),col2=json.dumps(col2))
@@ -176,11 +178,11 @@ def pyspark_code():
     col1,col2 = DB.get_params()['ft'],DB.get_params()['gr_ft']
     final = {}
     for u in updates:
-        if u['id_val'].isdigit():
+        if str(u['id_val']).isdigit():
             id_val = int(u['id_val'])
         else:
             id_val = u['id_val']
-        if u['gr_val'].isdigit():
+        if str(u['gr_val']).isdigit():
             gr_val = int(u['gr_val'])
         else:
             gr_val = u['gr_val']
@@ -190,10 +192,48 @@ def pyspark_code():
         final = "no updates"
     return render_template("pyspark_code.html",final = final, col1=json.dumps(col1),col2=json.dumps(col2))
 
+
+@app.route('/save', methods=["POST"])
+def save():
+    file_name = DB.get_file_name()
+    df_res,df_ori = DB.get_final(file_name)
+    out_file = "grouping_"+os.path.splitext(file_name)[0]+'.xlsx'
+    path = os.path.join('s3://',bucket_name,pre)
+    # write two datasets
+    file_path = os.path.join(pre,out_file)
+    col1,col2 = DB.get_params()['ft'],DB.get_params()['gr_ft']
+    # sort
+    df_ori.sort_values(col1,inplace=True)
+    df_res.sort_values(col2,inplace=True)
+    with io.BytesIO() as output:
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df_res.to_excel(writer, sheet_name=col2+'_stats',index=False)
+            df_ori.to_excel(writer, sheet_name=col1+'_stats',index=False)
+        data = output.getvalue()
+    s3 = boto3.resource('s3')
+    s3.Bucket(bucket_name).put_object(Key=file_path, Body=data)
+
+    #update files
+    s3_file_names = []
+    for obj in bucket.objects.filter(Delimiter='/',Prefix=pre):
+        f = obj.key.split('/')[-1]
+        if f:
+            s3_file_names.append(f)
+
+    global files
+    files = [file for file in s3_file_names if file.endswith(".csv") or file.endswith(".parquet")\
+                                                or file.endswith(".xlsx")]
+    return render_template("save.html",path = path, out_file=out_file)
+
+
 def do_update(data):
     file_name = DB.get_file_name()
     #data = json.loads(data)
     ft_val,gr_ft_val = data['row_id'],data['edit']
+    if ft_val.isdigit():
+        ft_val = int(ft_val)
+    if gr_ft_val.isdigit():
+        gr_ft_val = int(gr_ft_val)
     DB.add_updates(ft_val,gr_ft_val) #record the updates for future use when transfer back to python/pyspark code
     DB.update_table(file_name,ft_val,gr_ft_val) #update the database table
     data_res,res_used_cols = DB.get_table(file_name,update=True)
@@ -207,21 +247,37 @@ def pd_read(file_name,src='test',sample=None,used_cols=None):
     else:
         csvFile = os.path.join('s3://',bucket_name,pre,file_name)
     table=None
-    if '.csv' in csvFile:
+    if csvFile.endswith('.csv'):
         table = pd.read_csv(csvFile, nrows=sample,usecols=used_cols)
-    if '.parquet' in csvFile:
+    if csvFile.endswith('.xlsx'):
+        s3_c = boto3.client('s3')
+        file_path = os.path.join(pre,file_name)
+        obj = s3_c.get_object(Bucket=bucket_name, Key=file_path)
+        data = obj['Body'].read()
+        table = pd.read_excel(io.BytesIO(data),nrows=sample)
+    if csvFile.endswith('.parquet'):
         table = pd.read_parquet(csvFile,engine='pyarrow',columns=used_cols)
         if sample:
             table = table.head(sample)
     return table
 
-def get_col(file):
+def get_col(file,src='test'):
     if file==DEFAULT_SELECT:
         return [DEFAULT_SELECT]
-    csvFile = os.path.join(csvfolderpath, file)
-    if '.csv' in csvFile:
+    if src=='test':
+        csvFile = os.path.join(csvfolderpath, file)
+    else:
+        csvFile = os.path.join('s3://',bucket_name,pre,file)
+    #csvFile = os.path.join(csvfolderpath, file)
+    if csvFile.endswith('.csv'):
         table = pd.read_csv(csvFile, nrows=10)
-    if '.parquet' in csvFile:
+    if csvFile.endswith('.xlsx'):
+        s3_c = boto3.client('s3')
+        file_path = os.path.join(pre,file)
+        obj = s3_c.get_object(Bucket=bucket_name, Key=file_path)
+        data = obj['Body'].read()
+        table = pd.read_excel(io.BytesIO(data),nrows=10)
+    if csvFile.endswith('.parquet'):
         table = pd.read_parquet(csvFile,  engine='pyarrow')
         table = table.head(10)
     cols = table.columns.tolist()

@@ -89,8 +89,14 @@ class DBHelper:
 
         df.drop(columns='cnt',inplace=True)
         return df
+
     def get_table_one(self,file_name):
         return list(self.db[file_name].find_one())
+        
+    def get_final(self,file_name):
+        df_ori,df_res,_,_=self.get_table(file_name)
+        return df_res,df_ori
+
     def get_table(self,file_name,update=False):
         params = self.get_params()
         #'ft':ft,'gr_ft':gr_ft,'cnt_ft':cnt_ft,'avg_ft':avg_ft = params

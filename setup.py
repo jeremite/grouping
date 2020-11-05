@@ -12,7 +12,7 @@ grouping_files = package_files("grouping/")
 #other_files = package_files("my_grouping/")
 setup(
     name = 'grouping',
-    version='0.1.1',
+    version='0.1.6',
     license='GNU General Public License v3',
     author='Travis Li',
     author_email='weixing.li@verisk.com',
